@@ -13,7 +13,7 @@ jupyter lab
 
 ## Pipeline
 
-### Step 1: Voice Activity Detection (VAD) & Segmentation
+### Step 1: Voice Activity Detection (VAD) & Segmentation (01_PrepareDataCalls)
 
 ```bash
 python 01_run_vad.py --input_dir data/raw_audio/ --output_dir data/segmented_audio/

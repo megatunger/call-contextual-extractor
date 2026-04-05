@@ -8,3 +8,19 @@ __pycache__/
 # Local data (not versioned)
 data/
 .DS_Store
+
+# LaTeX build / tool outputs (assignment-2)
+assignment-2/**/*.aux
+assignment-2/**/*.bbl
+assignment-2/**/*.bcf
+assignment-2/**/*.blg
+assignment-2/**/*.ent
+assignment-2/**/*.fdb_latexmk
+assignment-2/**/*.fls
+assignment-2/**/*.log
+assignment-2/**/*.out
+assignment-2/**/*.run.xml
+assignment-2/**/*.synctex.gz
+assignment-2/**/*.toc
+assignment-2/**/*.lof
+assignment-2/**/*.lot
