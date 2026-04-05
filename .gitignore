@@ -1,0 +1,10 @@
+# Jupyter
+.ipynb_checkpoints/
+
+# Python (notebooks / kernels)
+__pycache__/
+*.py[cod]
+
+# Local data (not versioned)
+data/
+.DS_Store

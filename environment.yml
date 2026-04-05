@@ -1,0 +1,30 @@
+name: ml-audio-llm
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.11.15
+  - ffmpeg=8.0.1
+  - pip
+  - pip:
+      - pandas==3.0.2
+      - polars==1.39.3
+      - pyarrow==23.0.1
+      - numpy==2.4.4
+      - requests==2.33.1
+      - tqdm==4.67.3
+      - matplotlib==3.10.8
+      - jupyterlab==4.5.6
+      - ipykernel==7.2.0
+      - ipywidgets==8.1.8
+      - yt-dlp==2026.03.17
+      - librosa==0.11.0
+      - pydub==0.25.1
+      - soundfile==0.13.1
+      - torch==2.11.0
+      - transformers==5.5.0
+      - datasets==4.8.4
+      - accelerate==1.13.0
+      - peft==0.18.1
+      - trl==1.0.0
+      - sentencepiece==0.2.1
