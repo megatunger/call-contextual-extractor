@@ -13,15 +13,16 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \documentclass[ 
   journal=medium,
-  manuscript=article-type,
-  year=2020,
-  volume=37,
+  manuscript={Contextual Information Extraction of Customer Data from Sales audio calls},
+  year=2026,
+  volume=0,
 ]{cup-journal}
 
 \usepackage{amsmath}
 \usepackage[nopatch]{microtype}
 \usepackage{booktabs}
 \usepackage{graphicx}
+\usepackage{placeins}
 \usepackage{xurl}
 \usepackage{fvextra}
 \fvset{
@@ -30,13 +31,43 @@
   breakanywhere=true,
 }
 
+\makeatletter
+\def\cup@journal@name{}
+\def\cup@year{}
+\def\cup@vol{}
+% Remove CUP branding/header block and tighten top/title spacing.
+\patchcmd{\@maketitle}
+  {\includegraphics[width=26mm]{cup-logo-new}}
+  {} 
+  {}
+  {}
+\patchcmd{\@maketitle}
+  {\firstheadsize{\journalnamefont\cup@journal@name}}
+  {}
+  {}
+  {}
+\patchcmd{\@maketitle}
+  {(\cup@year), {\volumefont\cup@vol}, \thepage--\pageref{LastPage}} 
+  {}
+  {}
+  {}
+\patchcmd{\@maketitle}
+  {\vspace*{\baselineskip}}
+  {\vspace*{0pt}}
+  {}
+  {}
+\setlength\cup@space@pre@title{0pt}
+\setlength\cup@space@post@title{0.25\baselineskip}
+\setlength\cup@space@post@author{0.25\baselineskip}
+% Reduce the gap after the abstract box.
+\g@addto@macro\endabstract{\vspace*{-0.8\baselineskip}}
+\makeatother
+
 \title{Assignment 2: Data and methodology}
 
 \author{Thomas Hoang / Student ID: A1984077}
 
 \addbibresource{example.bib}
-
-\keywords{keyword entry 1, keyword entry 2, keyword entry 3} %% First letter not capped
 
 \begin{document}
 
@@ -53,17 +84,6 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
 Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
 
 
-\subsection{sdf}
-Subsection text here. Lorem ipsum\autocite{Bayer_etal_2013} dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore\autocite{Adade_etal_2007} et dolore magna aliqua.
-
-Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
-
-\subsubsection{sgsdfs}
-Subsubsection text here. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
-Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
-
-Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do\endnote{A footnote/endnote} eiusmod tempor incididunt ut labore et dolore magna aliqua.
-
 \section{Data Preparation \& Pipeline Design}
 
 The dataset is taken from the internal \texttt{\textbf{Staging}} database at my organization (our internal sales calls using this system). I selected rows with \textbf{SQL} and exported the result to CSV.
@@ -78,6 +98,13 @@ ORDER BY created_at DESC;
 \end{verbatim}
 
 \texttt{duration > 5} excludes empty or very short calls. The export contains \textbf{13{,}232 records}.
+
+\begin{figure}[hbt!]
+  \centering
+  \includegraphics[width=0.7\linewidth]{images/dataframe.png}
+  \caption{Sample rows from the exported call dataframe.}
+  \label{fig:dataframe_sample}
+\end{figure}
 
 \subsection{Data Visualization}
 Figure~\ref{fig:call_duration_dist} plots \texttt{duration\_sec} for all \textbf{13{,}232} calls with valid duration. The distribution is right-skewed: \textbf{most calls are short}. Durations above the 99th percentile (about \textbf{775\,s}) are clipped and grouped in the final bin so the main mass of the histogram remains visible.
@@ -109,6 +136,7 @@ Figure~\ref{fig:vad_before_after} is one example from my Silero VAD test. Left: 
   \caption{One call: stereo mix (left) and customer channel with VAD speech regions (right).}
   \label{fig:vad_before_after}
 \end{figure}
+\FloatBarrier
 
 
 \subsection{Pre-processing Step 2: Automatic Speech Recognition (ASR)}
@@ -120,26 +148,10 @@ Segment-level transcripts are then merged by timestamp to reconstruct each full-
 
 \subsection{Step 3: LLM Fine-Tuning}
 In the final stage, reconstructed transcripts are turned into a supervised fine-tuning dataset for the downstream LLM.
-Each sample is a JSON record with fields \texttt{instruction}, \texttt{input}, and \texttt{response}.
-The \texttt{instruction} should spell out role, task, constraints, and the exact output contract (so the model sees a stable prompt at train and inference time); \texttt{input} is the full transcript; \texttt{response} is the target value only.
+What the model must predict is not chosen ad hoc: it is fixed by a \textbf{system-level field configuration} (column names, types, allowed label sets, and output formats).
+That configuration is the single source of truth for acceptable \texttt{response} values at training and deployment time.
 
-Two training rows for the same transcript (one per field) are shown below; \texttt{response} types match the two-column field reference in this subsection.
-\begin{Verbatim}
-{
-  "instruction": "You are a structured-field extractor for telesales QA. The user message contains one full call transcript (agent and customer).\n\nTask: assign customer_need_category.\n\nRules:\n- Return exactly one snake_case label from the closed set listed under that field in the schema (see the two-column reference).\n- Rely only on what the customer says or clearly implies; do not invent facts.\n- If the transcript does not support any label, return no_information.\n- Output the label token only: no quotes, commas, JSON, or explanation.",
-  "input": "<transcript>",
-  "response": "needs_more_information"
-}
-{
-  "instruction": "You are a structured-field extractor for telesales QA. The user message contains one full call transcript (agent and customer).\n\nTask: extract customer_callback_time.\n\nRules:\n- If the customer agrees to a callback and a calendar date is stated or unambiguously implied, return it as YYYY-MM-DD in Gregorian calendar.\n- If no callback is agreed or the date cannot be resolved, return JSON null (bare null, not a string).\n- Output only the date string or null, with no surrounding text.",
-  "input": "<transcript>",
-  "response": "2026-04-06"
-}
-\end{Verbatim}
-
-This schema fixes supervision targets so the model can be fine-tuned on consistent instruction--response pairs.
-
-\noindent\textbf{Example fields}\par\nobreak
+\noindent\textbf{System field configuration.}\par\nobreak
 \smallskip\noindent
 \begin{minipage}[t]{0.48\linewidth}
 \scriptsize
@@ -168,78 +180,28 @@ notes:
 \end{verbatim}
 \end{minipage}
 
+For supervised fine-tuning, each transcript yields \textbf{one training row per configured field}.
+Each row is a JSON object with \texttt{instruction}, \texttt{input}, and \texttt{response}.
+The \texttt{instruction} is a natural-language prompt \emph{instantiated from} that configuration: it states the role, the target field, and rules that enforce the configured types (for example, closed labels or date/\texttt{null}).
+The \texttt{input} is the transcript; the \texttt{response} is the supervised target and must be \textbf{consistent with the field definition above} (same enums, formats, and null policy).
+The following block shows two example rows (same transcript, two configured fields).
 
-\section{Deep Learning Methodology}
-
-The output for a single-column figure is in Figure~\ref{fig_sim}.  Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
-
-Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
-
-%See Figure~\ref{fig_wide} for a double-column figure; this is always at the top of a following page.
-
-
-\begin{figure}[hbt!]
-  \centering
-  \includegraphics[width=0.75\linewidth]{example-image-16x10.pdf}
-  \caption{Insert figure caption here}
-  \label{fig_sim}
-\end{figure}
-
-
-\begin{figure*}
-  \centering
-  \includegraphics[width=0.8\linewidth]{example-image-16x10.pdf}
-  \caption{Insert figure caption here}
-  \label{fig_wide}
-\end{figure*}
-
-
-See example table in Table~\ref{table_example}.
-
-\begin{table}[hbt!]
-  \begin{threeparttable}
-    \caption{An Example of a Table}
-    \label{table_example}
-    \begin{tabular}{llll}
-      \toprule
-      \headrow Column head 1 & Column head 2 & Column head 3        & Column head 4 \\
-      \midrule
-      One\tnote{a}           & Two           & three three          & four          \\
-      \midrule
-      Three                  & Four          & three three\tnote{b} & four          \\
-      \bottomrule
-    \end{tabular}
-    \begin{tablenotes}[hang]
-      \item[]Table note
-      \item[a]First note
-      \item[b]Another table note
-    \end{tablenotes}
-  \end{threeparttable}
-\end{table}
-
+\begin{Verbatim}
+{
+  "instruction": "You are a structured-field extractor for telesales QA. The user message contains one full call transcript (agent and customer).\n\nTask: assign customer_need_category.\n\nRules:\n- Return exactly one snake_case label from the closed set in customer_need_category.groups in the system configuration above.\n- Rely only on what the customer says or clearly implies; do not invent facts.\n- If the transcript does not support any label, return no_information.\n- Output the label token only: no quotes, commas, JSON, or explanation.",
+  "input": "<transcript>",
+  "response": "needs_more_information"
+}
+{
+  "instruction": "You are a structured-field extractor for telesales QA. The user message contains one full call transcript (agent and customer).\n\nTask: extract customer_callback_time.\n\nRules:\n- If the customer agrees to a callback and a calendar date is stated or unambiguously implied, return it as YYYY-MM-DD in Gregorian calendar.\n- If no callback is agreed or the date cannot be resolved, return JSON null (bare null, not a string).\n- Output only the date string or null, with no surrounding text.",
+  "input": "<transcript>",
+  "response": "2026-04-06"
+}
+\end{Verbatim}
 
 \section{Evaluation Metrics}
 The conclusion text goes here.
 
-
-\paragraph{Acknowledgments}
-I am grateful for the technical assistance of A. Author.
-
-
-\paragraph{Funding Statement}
-This research was supported by grants from the <funder-name><doi>(<award ID>); <funder-name><doi>(<award ID>).
-
-\paragraph{Competing Interests}
-A statement about any financial, professional, contractual or personal relationships or situations that could be perceived to impact the presentation of the work --- or `None' if none exist
-
-\paragraph{Data Availability Statement}
-A statement about how to access data, code and other materials allowing users to understand, verify and replicate findings --- e.g. Replication data and code can be found in Harvard Dataverse: \verb+\url{https://doi.org/link}+.
-
-\paragraph{Ethical Standards}
-The research meets all ethical guidelines, including adherence to the legal requirements of the study country.
-
-\paragraph{Author Contributions}
-Please provide an author contributions statement using the CRediT taxonomy roles as a guide {\verb+\url{https://www.casrai.org/credit.html}+}. Conceptualization: A.A; A.B. Methodology: A.A; A.B. Data curation: A.C. Data visualisation: A.C. Writing original draft: A.A; A.B. All authors approved the final submitted draft.
 
 
 %\endnote in some journals will behave like \footnote; and \printendnotes will not output anything. 
@@ -248,10 +210,4 @@ Please provide an author contributions statement using the CRediT taxonomy roles
 \defbibnote{preamble}{}
 
 \printbibliography[prenote={preamble}]
-\appendix
-
-\section{Example Appendix Section}
-
-Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
-
 \end{document}
