@@ -84,25 +84,22 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
 Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
 
 
-\section{Data Preparation \& Pipeline Design}
+\section{Data Preparation, Pipeline \& Methodology}
 
 The dataset is taken from the internal \texttt{\textbf{Staging}} database at my organization (our internal sales calls using this system). I selected rows with \textbf{SQL} and exported the result to CSV.
+\texttt{duration > 5} excludes empty or very short calls. The export contains \textbf{13{,}232 records}. 
 
 \begin{verbatim}
-SELECT *
-FROM call_call
-WHERE type='MANUAL'
-  AND record != ''
-  AND duration > 5
-ORDER BY created_at DESC;
+SELECT * FROM call_call WHERE type='MANUAL'
+AND record != '' AND duration > 5 ORDER BY created_at DESC;
 \end{verbatim}
 
-\texttt{duration > 5} excludes empty or very short calls. The export contains \textbf{13{,}232 records}.
+
 
 \begin{figure}[hbt!]
   \centering
   \includegraphics[width=0.7\linewidth]{images/dataframe.png}
-  \caption{Sample rows from the exported call dataframe.}
+  \caption{Sample rows from the exported call dataframe. Download dataset here: https://tinyurl.com/3umcxcs2}
   \label{fig:dataframe_sample}
 \end{figure}
 
@@ -126,7 +123,22 @@ Recordings are stereo: agent on the left channel and customer on the right in my
 Voice activity detection (VAD) outputs time intervals with speech. I retain those intervals and drop the rest. That removes long silent regions and much background sound prior to ASR. It is an imperfect but standard front end.
 
 \subsection{Pre-processing Step 1: Voice Activity Detection (VAD)}
-I use \textbf{Silero VAD} \autocite{SileroVAD}: low latency on CPU/GPU, suitable for batch jobs, and fast enough for real-time use.
+
+
+\begin{figure}[hbt!]
+  \centering
+  \begin{minipage}[t]{0.54\linewidth}
+    \vspace{0pt}
+    I first reviewed comparative VAD evidence on mixed-domain audio at 16\,kHz \autocite{SileroVADQualityMetrics}. In that evaluation, \textbf{Silero v6} reports the best multi-domain ROC-AUC (\textbf{0.97}) and high chunk-level speech accuracy (\textbf{0.92}). The same source notes that \textbf{WebRTC VAD}, although very fast, is weaker at separating speech from noise than from silence. Based on this quality evidence and deployment constraints, I adopted \textbf{Silero VAD} for this pipeline \autocite{SileroVAD,SileroVADQualityMetrics}.
+  \end{minipage}\hfill
+  \begin{minipage}[t]{0.42\linewidth}
+    \vspace{0pt}
+    \includegraphics[width=\linewidth]{images/comparisons of VAD models.png}
+  \end{minipage}
+  \caption{Precision-recall comparison across VAD models on multi-domain validation (source: Silero VAD quality metrics).}
+  \label{fig:vad_model_comparison}
+\end{figure}
+\FloatBarrier
 
 Figure~\ref{fig:vad_before_after} is one example from my Silero VAD test. Left: both channels overlaid (labels as in my notebook). Right: customer channel only, with green spans for VAD-detected speech. Audio is resampled to \textbf{16\,kHz} for the model.
 
@@ -140,18 +152,36 @@ Figure~\ref{fig:vad_before_after} is one example from my Silero VAD test. Left: 
 
 
 \subsection{Pre-processing Step 2: Automatic Speech Recognition (ASR)}
-After VAD segmentation, each speech-only chunk is forwarded to an Automatic Speech Recognition (ASR) model.
-In this project, I use the Vietnamese wav2vec2 checkpoint \path{nguyenvulebinh/wav2vec2-base-vi} \cite{nguyenvulebinh_wav2vec2_base_vi}.
-It follows the wav2vec2 architecture and is self-supervised pre-trained on Vietnamese speech.
-The ASR model converts audio segments into unstructured text transcripts.
-Segment-level transcripts are then merged by timestamp to reconstruct each full-call transcript.
+After VAD segmentation, each speech-only chunk is forwarded to an Automatic Speech Recognition (ASR) model. I expect the model converts audio segments into unstructured text transcripts.
+Segment transcripts are then merged by timestamp to reconstruct each full-call transcript.
+
+Three ASR candidates are considered: wav2vec2 with a Vietnamese checkpoint \path{nguyenvulebinh/wav2vec2-base-vi}~\cite{nguyenvulebinh_wav2vec2_base_vi}, Whisper~\cite{whisper_repo}, and Zipformer~\cite{zipformer_hf,zipformer_paper}.
+
+\begin{table}[hbt!]
+  \centering
+  \caption{ASR model choices under project priorities.}
+  \label{tab:asr_model_choices}
+  \begin{tabular}{p{0.18\linewidth}p{0.24\linewidth}p{0.18\linewidth}p{0.18\linewidth}}
+    \
+    \textbf{Priority / Attribute} & \textbf{wav2vec2}~\cite{nguyenvulebinh_wav2vec2_base_vi} & \textbf{Zipformer}~\cite{zipformer_hf,zipformer_paper} & \textbf{Whisper}~\cite{whisper_repo} \\
+    \midrule
+    \textbf{Architecture} & Transformer (wav2vec2) & Transformer-based (Zipformer encoder) & Transformer (encoder-decoder) \\
+    \textbf{Priority 1: Vietnamese support / pre-training} & Many Vietnamese checkpoints, community-proven & Fewer variants, pretrained checkpoints available & Vietnamese supported, dataset details less explicit \\
+    \textbf{Priority 2: Speed / real-time} & Good speed, already used in our production system in other parts & Super fast, almost real-time, currently experimental for us & Average speed \\
+    \textbf{Priority 3 (optional): CPU execution} & CPU inference supported & CPU deployment supported by available assets & CPU inference supported \\
+    \textbf{Current status} & Shortlisted candidate (likely candidate) & Shortlisted candidate & Candidate for additional evaluation \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+At this stage, wav2vec2 and Zipformer are the two shortlisted options, with \textbf{wav2vec2} currently treated as the likely candidate. This is because it has already been \textbf{applied in our system for some time}, real-time speed is not the most critical requirement for this feature, and the architecture is well known. A final model decision still requires controlled testing (accuracy and latency) on Vietnamese call data in the target runtime environment.
 
 \subsection{Step 3: LLM Fine-Tuning}
 In the final stage, reconstructed transcripts are turned into a supervised fine-tuning dataset for the downstream LLM.
 What the model must predict is not chosen ad hoc: it is fixed by a \textbf{system-level field configuration} (column names, types, allowed label sets, and output formats).
 That configuration is the single source of truth for acceptable \texttt{response} values at training and deployment time.
 
-\noindent\textbf{System field configuration.}\par\nobreak
+\noindent\textbf{Example system field configuration}\par\nobreak
 \smallskip\noindent
 \begin{minipage}[t]{0.48\linewidth}
 \scriptsize
@@ -182,9 +212,6 @@ notes:
 
 For supervised fine-tuning, each transcript yields \textbf{one training row per configured field}.
 Each row is a JSON object with \texttt{instruction}, \texttt{input}, and \texttt{response}.
-The \texttt{instruction} is a natural-language prompt \emph{instantiated from} that configuration: it states the role, the target field, and rules that enforce the configured types (for example, closed labels or date/\texttt{null}).
-The \texttt{input} is the transcript; the \texttt{response} is the supervised target and must be \textbf{consistent with the field definition above} (same enums, formats, and null policy).
-The following block shows two example rows (same transcript, two configured fields).
 
 \begin{Verbatim}
 {
@@ -199,8 +226,17 @@ The following block shows two example rows (same transcript, two configured fiel
 }
 \end{Verbatim}
 
+Model selection is flexible. Candidate families include:
+\begin{itemize}
+  \item Qwen3.5 (\url{https://huggingface.co/collections/Qwen/qwen35})
+  \item Gemma 4 E4B (\url{https://huggingface.co/google/gemma-4-E4B})
+  \item SmolLM3 (\url{https://huggingface.co/blog/smollm3})
+\end{itemize}
+In reality, I would prioritize smaller models first to reduce running cost.
+If quality is similar, choosing the smallest model is usually sufficient for this task.
+
 \section{Evaluation Metrics}
-The conclusion text goes here.
+The conclusion text goes here. 
 
 
 
