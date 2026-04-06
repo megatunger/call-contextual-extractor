@@ -1,0 +1,221 @@
+% $ biblatex auxiliary file $
+% $ biblatex bbl format version 3.3 $
+% Do not modify the above lines!
+%
+% This is an auxiliary file used by the 'biblatex' package.
+% This file may safely be deleted. It will be recreated by
+% biber as required.
+%
+\begingroup
+\makeatletter
+\@ifundefined{ver@biblatex.sty}
+  {\@latex@error
+     {Missing 'biblatex' package}
+     {The bibliography requires the 'biblatex' package.}
+      \aftergroup\endinput}
+  {}
+\endgroup
+
+
+\refsection{0}
+  \datalist[entry]{cms/global//global/global/global}
+    \entry{Adade_etal_2007}{article}{}{}
+      \name{author}{3}{}{%
+        {{un=0,uniquepart=base,hash=49d29d99b1c123aefa30e4eda9b5dd1f}{%
+           family={Adade},
+           familyi={A\bibinitperiod},
+           given={Camila\bibnamedelima M},
+           giveni={C\bibinitperiod\bibinitdelim M\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=8892244f28fc3eeb7eaa162f87df3bed}{%
+           family={Castro},
+           familyi={C\bibinitperiod},
+           given={Solange\bibnamedelima L},
+           giveni={S\bibinitperiod\bibinitdelim L\bibinitperiod},
+           givenun=0,
+           prefix={de},
+           prefixi={d\bibinitperiod},
+           prefixun=0}}%
+        {{un=0,uniquepart=base,hash=de98c0ef32c1e0cf4919a0d741b3c82c}{%
+           family={Soares},
+           familyi={S\bibinitperiod},
+           given={Maurilio\bibnamedelima J},
+           giveni={M\bibinitperiod\bibinitdelim J\bibinitperiod},
+           givenun=0}}%
+      }
+      \list{publisher}{1}{%
+        {Elsevier}%
+      }
+      \strng{namehash}{b70f1905e00ebfe726a373139d2d277c}
+      \strng{fullhash}{b70f1905e00ebfe726a373139d2d277c}
+      \strng{fullhashraw}{b70f1905e00ebfe726a373139d2d277c}
+      \strng{bibnamehash}{b70f1905e00ebfe726a373139d2d277c}
+      \strng{authorbibnamehash}{b70f1905e00ebfe726a373139d2d277c}
+      \strng{authornamehash}{b70f1905e00ebfe726a373139d2d277c}
+      \strng{authorfullhash}{b70f1905e00ebfe726a373139d2d277c}
+      \strng{authorfullhashraw}{b70f1905e00ebfe726a373139d2d277c}
+      \field{sortinit}{A}
+      \field{sortinithash}{2f401846e2029bad6b3ecc16d50031e2}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{author}
+      \field{journaltitle}{Micron}
+      \field{number}{3}
+      \field{title}{Ultrastructural localization of \emph{Trypanosoma cruzi} lysosomes by aryl sulphatase cytochemistry}
+      \field{volume}{38}
+      \field{year}{2007}
+      \field{pages}{252\bibrangedash 256}
+      \range{pages}{5}
+    \endentry
+    \entry{Bayer_etal_2013}{article}{}{}
+      \name{author}{10}{}{%
+        {{un=0,uniquepart=base,hash=c9c0b8b3b97c439593e3e618e3ff5e5d}{%
+           family={Bayer-Santos},
+           familyi={B\bibinithyphendelim S\bibinitperiod},
+           given={Ethel},
+           giveni={E\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=c44f913d80b6c2246a86bc1e3470d53a}{%
+           family={Aguilar-Bonavides},
+           familyi={A\bibinithyphendelim B\bibinitperiod},
+           given={Clemente},
+           giveni={C\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=07dd6d0e724ccd9953c49db460d055df}{%
+           family={Rodrigues},
+           familyi={R\bibinitperiod},
+           given={Silas\bibnamedelima Pessini},
+           giveni={S\bibinitperiod\bibinitdelim P\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=622a2d0b86ebfa23089d1801179c7122}{%
+           family={Cordero},
+           familyi={C\bibinitperiod},
+           given={Esteban\bibnamedelima Maurício},
+           giveni={E\bibinitperiod\bibinitdelim M\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=b389d1a2faa7afdb9c213602fda11c01}{%
+           family={Marques},
+           familyi={M\bibinitperiod},
+           given={Alexandre\bibnamedelima Ferreira},
+           giveni={A\bibinitperiod\bibinitdelim F\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=ce7991e33c3fd2a429a15f7eabd7a1b3}{%
+           family={Varela-Ramirez},
+           familyi={V\bibinithyphendelim R\bibinitperiod},
+           given={Armando},
+           giveni={A\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=5b5cfd8289d308807451c9e9537d6e2e}{%
+           family={Choi},
+           familyi={C\bibinitperiod},
+           given={Hyungwon},
+           giveni={H\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=dd15efe878ded803fb2ab56512b2179e}{%
+           family={Yoshida},
+           familyi={Y\bibinitperiod},
+           given={Nobuko},
+           giveni={N\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=33bc55ed17a26546c55138fdfa94b7fd}{%
+           family={Da\bibnamedelima Silveira},
+           familyi={D\bibinitperiod\bibinitdelim S\bibinitperiod},
+           given={José\bibnamedelima Franco},
+           giveni={J\bibinitperiod\bibinitdelim F\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=4329581d16473add088e04bdd0c23393}{%
+           family={Almeida},
+           familyi={A\bibinitperiod},
+           given={Igor\bibnamedelima C},
+           giveni={I\bibinitperiod\bibinitdelim C\bibinitperiod},
+           givenun=0}}%
+      }
+      \list{publisher}{1}{%
+        {ACS Publications}%
+      }
+      \strng{namehash}{46a69c3f1b363a2b43bf79a765584e21}
+      \strng{fullhash}{0390409c001127fce3d9cce769bb66bc}
+      \strng{fullhashraw}{0390409c001127fce3d9cce769bb66bc}
+      \strng{bibnamehash}{0390409c001127fce3d9cce769bb66bc}
+      \strng{authorbibnamehash}{0390409c001127fce3d9cce769bb66bc}
+      \strng{authornamehash}{46a69c3f1b363a2b43bf79a765584e21}
+      \strng{authorfullhash}{0390409c001127fce3d9cce769bb66bc}
+      \strng{authorfullhashraw}{0390409c001127fce3d9cce769bb66bc}
+      \field{sortinit}{B}
+      \field{sortinithash}{d7095fff47cda75ca2589920aae98399}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{author}
+      \field{journaltitle}{Journal of Proteome Research}
+      \field{number}{2}
+      \field{title}{Proteomic analysis of Trypanosoma cruzi secretome: characterization of two populations of extracellular vesicles and soluble proteins}
+      \field{volume}{12}
+      \field{year}{2013}
+      \field{pages}{883\bibrangedash 897}
+      \range{pages}{15}
+    \endentry
+    \entry{nguyenvulebinh_wav2vec2_base_vi}{misc}{}{}
+      \name{author}{1}{}{%
+        {{un=0,uniquepart=base,hash=4c02b9d4c4d5e1f57d16791a7ace42e6}{%
+           family={Binh},
+           familyi={B\bibinitperiod},
+           given={Nguyen\bibnamedelimb Vu\bibnamedelima Le},
+           giveni={N\bibinitperiod\bibinitdelim V\bibinitperiod\bibinitdelim L\bibinitperiod},
+           givenun=0}}%
+      }
+      \list{publisher}{1}{%
+        {Hugging Face}%
+      }
+      \strng{namehash}{4c02b9d4c4d5e1f57d16791a7ace42e6}
+      \strng{fullhash}{4c02b9d4c4d5e1f57d16791a7ace42e6}
+      \strng{fullhashraw}{4c02b9d4c4d5e1f57d16791a7ace42e6}
+      \strng{bibnamehash}{4c02b9d4c4d5e1f57d16791a7ace42e6}
+      \strng{authorbibnamehash}{4c02b9d4c4d5e1f57d16791a7ace42e6}
+      \strng{authornamehash}{4c02b9d4c4d5e1f57d16791a7ace42e6}
+      \strng{authorfullhash}{4c02b9d4c4d5e1f57d16791a7ace42e6}
+      \strng{authorfullhashraw}{4c02b9d4c4d5e1f57d16791a7ace42e6}
+      \field{sortinit}{B}
+      \field{sortinithash}{d7095fff47cda75ca2589920aae98399}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{howpublished}{\url{https://huggingface.co/nguyenvulebinh/wav2vec2-base-vi}}
+      \field{note}{Vietnamese self-supervised pre-trained wav2vec2}
+      \field{title}{wav2vec2-base-vi}
+      \field{year}{2022}
+    \endentry
+    \entry{SileroVAD}{misc}{}{}
+      \name{author}{1}{}{%
+        {{un=0,uniquepart=base,hash=543b3cdba1f1bd9ab2ed7db4cfb07055}{%
+           family={{Silero Team}},
+           familyi={S\bibinitperiod}}}%
+      }
+      \list{publisher}{1}{%
+        {GitHub}%
+      }
+      \strng{namehash}{543b3cdba1f1bd9ab2ed7db4cfb07055}
+      \strng{fullhash}{543b3cdba1f1bd9ab2ed7db4cfb07055}
+      \strng{fullhashraw}{543b3cdba1f1bd9ab2ed7db4cfb07055}
+      \strng{bibnamehash}{543b3cdba1f1bd9ab2ed7db4cfb07055}
+      \strng{authorbibnamehash}{543b3cdba1f1bd9ab2ed7db4cfb07055}
+      \strng{authornamehash}{543b3cdba1f1bd9ab2ed7db4cfb07055}
+      \strng{authorfullhash}{543b3cdba1f1bd9ab2ed7db4cfb07055}
+      \strng{authorfullhashraw}{543b3cdba1f1bd9ab2ed7db4cfb07055}
+      \field{sortinit}{S}
+      \field{sortinithash}{b164b07b29984b41daf1e85279fbc5ab}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{howpublished}{\url{https://github.com/snakers4/silero-vad}}
+      \field{note}{GitHub repository}
+      \field{title}{Silero VAD: pre-trained enterprise-grade voice activity detector (VAD), number detector and language classifier}
+      \field{year}{2024}
+    \endentry
+  \enddatalist
+\endrefsection
+\endinput
+

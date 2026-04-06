@@ -21,6 +21,14 @@
 \usepackage{amsmath}
 \usepackage[nopatch]{microtype}
 \usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{xurl}
+\usepackage{fvextra}
+\fvset{
+  fontsize=\footnotesize,
+  breaklines=true,
+  breakanywhere=true,
+}
 
 \title{Assignment 2: Data and methodology}
 
@@ -40,14 +48,6 @@
 
 This demo file is intended to serve as a ``starter file''. It is for preparing manuscript submission only, not for preparing camera-ready versions of manuscripts. Manuscripts will be typeset for publication by the journal, after they have been accepted.
 
-By default, this template uses \texttt{biblatex} and adopts the Chicago referencing style. However, the journal you’re submitting to may require a different reference style; specify the journal you're using with the class' \texttt{journal} option --- see lines 1--13 of \emph{sample.tex} for a list of options and instructions for selecting the journal. If you are using this template on Overleaf, Overleaf's build tool will automatically run \texttt{pdflatex} and \texttt{biber}. If you are compiling this template on your own local \LaTeX{} installation, please execute the following commands:
-\begin{enumerate}
-  \item \verb|pdflatex sample|
-  \item \verb|biber sample|
-  \item \verb|pdflatex sample|
-  \item \verb|pdflatex sample|
-\end{enumerate}
-
 Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
 
 Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
@@ -64,51 +64,109 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
 
 Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do\endnote{A footnote/endnote} eiusmod tempor incididunt ut labore et dolore magna aliqua.
 
-\section{Dataset, Data Preparation \& Architecture Design}
+\section{Data Preparation \& Pipeline Design}
 
-\subsection{Dataset Description}
-The dataset was sourced from the internal \texttt{\textbf{Staging}} database, which contains sufficient \textbf{real-world sales-call data} used in our product operations. Data extraction was performed with \textbf{SQL} using the following query:
+The dataset is taken from the internal \texttt{\textbf{Staging}} database at my organization (our internal sales calls using this system). I selected rows with \textbf{SQL} and exported the result to CSV.
 
 \begin{verbatim}
-SELECT * from call_call WHERE type='MANUAL' and record != '' and duration > 5 
+SELECT *
+FROM call_call
+WHERE type='MANUAL'
+  AND record != ''
+  AND duration > 5
 ORDER BY created_at DESC;
 \end{verbatim}
 
-The condition \texttt{\textbf{duration > 5}} was applied to ensure the call actually took place and to filter out very short or invalid records. The query output was exported to a \textbf{CSV} file, resulting in a final dataset of \textbf{13{,}232 records}.
+\texttt{duration > 5} excludes empty or very short calls. The export contains \textbf{13{,}232 records}.
 
 \subsection{Data Visualization}
-To inspect recording quality and segmentation behavior, we visualized the temporal structure of the audio before and after preprocessing. Figure~\ref{fig_dataset_viz} illustrates a waveform-style view where low-amplitude regions correspond to silence and higher-energy regions correspond to active speech.
+Figure~\ref{fig:call_duration_dist} plots \texttt{duration\_sec} for all \textbf{13{,}232} calls with valid duration. The distribution is right-skewed: \textbf{most calls are short}. Durations above the 99th percentile (about \textbf{775\,s}) are clipped and grouped in the final bin so the main mass of the histogram remains visible.
+
+In a call, the silence is often much longer than the speech. This \textbf{motivates segmenting audio} before speech-to-text instead of processing entire files end-to-end.
 
 \begin{figure}[hbt!]
   \centering
-  \includegraphics[width=0.85\linewidth]{example-image-16x10.pdf}
-  \caption{Example audio visualization (waveform/energy profile) highlighting silence and speech intervals used in segmentation analysis.}
-  \label{fig_dataset_viz}
+  \includegraphics[width=0.92\linewidth]{images/number_of_calls_and_durations.png}
+  \caption{Distribution of call duration (seconds). Values above the 99th percentile are merged into the last bin.}
+  \label{fig:call_duration_dist}
 \end{figure}
 
-In addition to waveform plots, a duration histogram can be used to compare chunk lengths before and after Voice Activity Detection (VAD), showing that long silence-heavy segments are split into shorter speech-focused chunks.
+\subsection{Why do we need to preprocess the audio?}
+\textbf{The goal} is to feed a speech-to-text model \textbf{audio that is mostly speech}. Raw files add silence, hold tones, background noise, and non-speech events. That increases recognition errors. Preprocessing limits those segments before ASR.
+
+Recordings are stereo: agent on the left channel and customer on the right in my setup. Downstream analysis targets the customer, so I take the right channel before VAD.
+
+Voice activity detection (VAD) outputs time intervals with speech. I retain those intervals and drop the rest. That removes long silent regions and much background sound prior to ASR. It is an imperfect but standard front end.
 
 \subsection{Pre-processing Step 1: Voice Activity Detection (VAD)}
-The first preprocessing stage applies Silero VAD to remove non-speech regions and split each call into speech segments. Silero VAD is designed for low-latency inference and can process short audio windows (30+ ms chunks) in under 1 ms on modern hardware. This makes it suitable for large-scale batch pipelines and near-real-time settings.
+I use \textbf{Silero VAD} \autocite{SileroVAD}: low latency on CPU/GPU, suitable for batch jobs, and fast enough for real-time use.
 
-For implementation flexibility, Silero VAD supports both PyTorch and ONNX backends. In this project, the backend choice depends on the deployment target: PyTorch for rapid experimentation and ONNX for optimized inference portability.
+Figure~\ref{fig:vad_before_after} is one example from my Silero VAD test. Left: both channels overlaid (labels as in my notebook). Right: customer channel only, with green spans for VAD-detected speech. Audio is resampled to \textbf{16\,kHz} for the model.
 
-\subsection{Pre-processing Step 2: Speech-to-Text (ASR)}
-After VAD segmentation, each speech-only chunk is forwarded to an Automatic Speech Recognition (ASR) model (e.g., Qwen3-ASR). The ASR model converts audio segments into unstructured text transcripts while preserving conversational order. Segment-level transcripts are then merged chronologically to reconstruct each full-call transcript.
+\begin{figure}[hbt!]
+  \centering
+  \includegraphics[width=\linewidth]{images/before_after_process_vad.png}
+  \caption{One call: stereo mix (left) and customer channel with VAD speech regions (right).}
+  \label{fig:vad_before_after}
+\end{figure}
 
-\subsection{Ground Truth Dataset Creation (Step 3)}
-In the final stage, reconstructed transcripts are transformed into instruction-tuning samples for LLM fine-tuning. Each sample is formatted as an \texttt{Instruction/Response} pair in JSON, where the instruction defines the task (e.g., summarize the call, extract customer intent, detect objections) and the response provides the expected target output.
 
-A simplified record format is shown below:
-\begin{verbatim}
+\subsection{Pre-processing Step 2: Automatic Speech Recognition (ASR)}
+After VAD segmentation, each speech-only chunk is forwarded to an Automatic Speech Recognition (ASR) model.
+In this project, I use the Vietnamese wav2vec2 checkpoint \path{nguyenvulebinh/wav2vec2-base-vi} \cite{nguyenvulebinh_wav2vec2_base_vi}.
+It follows the wav2vec2 architecture and is self-supervised pre-trained on Vietnamese speech.
+The ASR model converts audio segments into unstructured text transcripts.
+Segment-level transcripts are then merged by timestamp to reconstruct each full-call transcript.
+
+\subsection{Step 3: LLM Fine-Tuning}
+In the final stage, reconstructed transcripts are turned into a supervised fine-tuning dataset for the downstream LLM.
+Each sample is a JSON record with fields \texttt{instruction}, \texttt{input}, and \texttt{response}.
+The \texttt{instruction} should spell out role, task, constraints, and the exact output contract (so the model sees a stable prompt at train and inference time); \texttt{input} is the full transcript; \texttt{response} is the target value only.
+
+Two training rows for the same transcript (one per field) are shown below; \texttt{response} types match the two-column field reference in this subsection.
+\begin{Verbatim}
 {
-  "instruction": "Summarize the sales call and list key objections.",
-  "input": "<full transcript text>",
-  "response": "<structured summary and objection list>"
+  "instruction": "You are a structured-field extractor for telesales QA. The user message contains one full call transcript (agent and customer).\n\nTask: assign customer_need_category.\n\nRules:\n- Return exactly one snake_case label from the closed set listed under that field in the schema (see the two-column reference).\n- Rely only on what the customer says or clearly implies; do not invent facts.\n- If the transcript does not support any label, return no_information.\n- Output the label token only: no quotes, commas, JSON, or explanation.",
+  "input": "<transcript>",
+  "response": "needs_more_information"
 }
-\end{verbatim}
+{
+  "instruction": "You are a structured-field extractor for telesales QA. The user message contains one full call transcript (agent and customer).\n\nTask: extract customer_callback_time.\n\nRules:\n- If the customer agrees to a callback and a calendar date is stated or unambiguously implied, return it as YYYY-MM-DD in Gregorian calendar.\n- If no callback is agreed or the date cannot be resolved, return JSON null (bare null, not a string).\n- Output only the date string or null, with no surrounding text.",
+  "input": "<transcript>",
+  "response": "2026-04-06"
+}
+\end{Verbatim}
 
-This schema standardizes supervision signals and produces a clean ground-truth dataset for supervised fine-tuning of the downstream LLM.
+This schema fixes supervision targets so the model can be fine-tuned on consistent instruction--response pairs.
+
+\noindent\textbf{Example fields}\par\nobreak
+\smallskip\noindent
+\begin{minipage}[t]{0.48\linewidth}
+\scriptsize
+\begin{verbatim}
+column: customer_need_category
+type: classification
+groups:
+  interested | not_interested
+  | no_information | needs_more_information
+  | price_or_budget_concern | timing_defer
+  | comparing_options | already_satisfied
+  | undecided
+response: Enum[str]
+\end{verbatim}
+\end{minipage}%
+\hfill
+\begin{minipage}[t]{0.48\linewidth}
+\scriptsize
+\begin{verbatim}
+column: customer_callback_time
+type: optional_date
+response: date | null
+format: YYYY-MM-DD
+notes:
+  bare JSON null if unknown
+\end{verbatim}
+\end{minipage}
 
 
 \section{Deep Learning Methodology}
@@ -165,7 +223,7 @@ The conclusion text goes here.
 
 
 \paragraph{Acknowledgments}
-We are grateful for the technical assistance of A. Author.
+I am grateful for the technical assistance of A. Author.
 
 
 \paragraph{Funding Statement}
@@ -187,7 +245,7 @@ Please provide an author contributions statement using the CRediT taxonomy roles
 %\endnote in some journals will behave like \footnote; and \printendnotes will not output anything. 
 \printendnotes
 
-\defbibnote{preamble}{By default, this template uses \texttt{biblatex} and adopts the Chicago referencing style. However, the journal you’re submitting to may require a different reference style; specify the journal you're using with the class' \texttt{journal} option --- see lines 1--13 of \emph{sample.tex} for a list of options and instructions for selecting the journal.}
+\defbibnote{preamble}{}
 
 \printbibliography[prenote={preamble}]
 \appendix
