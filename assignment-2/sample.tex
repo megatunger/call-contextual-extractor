@@ -72,16 +72,20 @@
 \begin{document}
 
 \begin{abstract}
-  Insert abstract text here. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+  Sales agents on our CRM platform (uCall) currently fill in customer fields by hand after every call. This project presents a three-stage pipeline to automate that process: (1) Silero VAD removes silence and noise from the raw audio, (2) a wav2vec\,2.0 model transcribes the remaining speech in Vietnamese, and (3) a LoRA-fine-tuned LLM extracts structured CRM fields from the transcript. The pipeline will be evaluated on 13{,}232 real calls using Word Error Rate for ASR and Precision, Recall, F1 for the extraction stage.
 \end{abstract}
 
-\section{Introduction \& Related Work}
+\section{Introduction}
 
-This demo file is intended to serve as a ``starter file''. It is for preparing manuscript submission only, not for preparing camera-ready versions of manuscripts. Manuscripts will be typeset for publication by the journal, after they have been accepted.
+\textbf{uCall} is a \textbf{CRM and automation call system} built by my startup. One of its core features lets sales agents make calls directly from the web app, and while on the call they can view and update customer information in the same UI. Right now, after every call, agents have to \textbf{fill in those fields manually}, things like customer interest, callback date, budget, and so on. This is slow, and when agents handle dozens of calls a day, they often skip fields or enter inconsistent data.
 
-Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
-
-Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+The goal of this work is to \textbf{speed that up}: automatically extract customer information from the call audio and fill the CRM fields while the agent is still on the call. To do that, I propose a three-stage pipeline:
+\begin{itemize}
+  \item \textbf{Stage 1 -- Voice Activity Detection (VAD):} strip out silence and noise from the raw audio so only speech is kept.
+  \item \textbf{Stage 2 -- Automatic Speech Recognition (ASR):} convert the speech into a Vietnamese text transcript.
+  \item \textbf{Stage 3 -- LLM extraction:} a fine-tuned language model reads the transcript and outputs the structured fields that match the organisation's CRM configuration.
+\end{itemize}
+Section~2 covers the dataset and each pipeline stage. Section~3 describes the evaluation metrics.
 
 
 \section{Data Preparation, Pipeline \& Methodology}
@@ -99,9 +103,10 @@ AND record != '' AND duration > 5 ORDER BY created_at DESC;
 \begin{figure}[hbt!]
   \centering
   \includegraphics[width=0.7\linewidth]{images/dataframe.png}
-  \caption{Sample rows from the exported call dataframe. Download dataset here: https://tinyurl.com/3umcxcs2}
+  \caption{Sample rows from the exported call dataframe.}
   \label{fig:dataframe_sample}
 \end{figure}
+\endnote{\protect\textbf{Exported call dataset (CSV):} \protect\url{https://tinyurl.com/3umcxcs2}}
 
 \subsection{Data Visualization}
 Figure~\ref{fig:call_duration_dist} plots \texttt{duration\_sec} for all \textbf{13{,}232} calls with valid duration. The distribution is right-skewed: \textbf{most calls are short}. Durations above the 99th percentile (about \textbf{775\,s}) are clipped and grouped in the final bin so the main mass of the histogram remains visible.
@@ -152,8 +157,7 @@ Figure~\ref{fig:vad_before_after} is one example from my Silero VAD test. Left: 
 
 
 \subsection{Pre-processing Step 2: Automatic Speech Recognition (ASR)}
-After VAD segmentation, each speech-only chunk is forwarded to an Automatic Speech Recognition (ASR) model. I expect the model converts audio segments into unstructured text transcripts.
-Segment transcripts are then merged by timestamp to reconstruct each full-call transcript.
+After VAD segmentation, each speech-only chunk is forwarded to an Automatic Speech Recognition (ASR) model. The model converts audio segments into unstructured text transcripts. Segment transcripts are then merged by timestamp to reconstruct each full-call transcript.
 
 Three ASR candidates are considered: wav2vec2 with a Vietnamese checkpoint \path{nguyenvulebinh/wav2vec2-base-vi}~\cite{nguyenvulebinh_wav2vec2_base_vi}, Whisper~\cite{whisper_repo}, and Zipformer~\cite{zipformer_hf,zipformer_paper}.
 
@@ -207,7 +211,7 @@ response: date | null
 format: YYYY-MM-DD
 notes:
   bare JSON null if unknown
-\end{verbatim}
+\end{verbatim} 
 \end{minipage}
 
 For supervised fine-tuning, each transcript yields \textbf{one training row per configured field}.
@@ -238,7 +242,7 @@ All are decoder-only Transformers built on self-attention~\cite{vaswani2017atten
   \mathrm{Attention}(Q,K,V)=\mathrm{softmax}({QK^{\top}}/{\sqrt{d_k}})\,V,
 \]
 which lets every token attend to the full transcript and resolve the implicit context needed for each structured field.
-Among these candidates, smaller models are preferred: if extraction quality is comparable, a smaller architecture reduces inference and training cost with no downside for this task.
+Among these candidates, smaller models are preferred: if extraction quality is comparable, a smaller architecture reduces inference and training cost
 
 \subsubsection{Fine-Tuning Strategy \& Loss}
 Because updating every parameter of a billion-scale model is expensive, the pipeline uses \textbf{LoRA}~\cite{hu2022lora}: the pre-trained weights $W_0$ are frozen and only a low-rank update $\Delta W = BA$ ($r\!\ll\!\min(d,k)$) is trained, cutting trainable parameters to a small fraction and further reducing GPU cost.
@@ -270,7 +274,7 @@ Minimising WER is important. Benchmarking has shown that \texttt{wav2vec2-base-v
 Minimising this acoustic error rate ensures that the downstream language model receives high-quality textual context.
 
 \subsection{Contextual Extraction Evaluation (The LLM)}
-To evaluate the Qwen model's ability to extract the correct customer-configured JSON fields (e.g., \texttt{Budget}, \texttt{Timeline}) from the transcribed text, we treat the task as a \textbf{token / entity classification} problem.
+To evaluate the Qwen model's ability to extract the correct customer-configured JSON fields (e.g., \texttt{Budget}, \texttt{Timeline}) from the transcribed text, I treat the task as a \textbf{token / entity classification} problem.
 The system's performance will be measured using \textbf{Precision}, \textbf{Recall}, and the \textbf{F1-Score}.
 
 For each target JSON field, the metrics are mathematically defined using True Positives~(TP), False Positives~(FP), and False Negatives~(FN):
@@ -298,8 +302,6 @@ For each target JSON field, the metrics are mathematically defined using True Po
     \item \emph{Accuracy} is misleading here because most of the transcript is ordinary conversation with no extractable data. A model that extracts nothing at all would still score $\sim$99\% Accuracy simply by ignoring rare targets~\cite{powers2020evaluationprecisionrecallfmeasure, jeni2013facing}.
     \item \emph{F1-Score} focuses only on the entities we care about: it drops when the model invents information that was never said (low precision) or overlooks something the customer actually mentioned (low recall)~\cite{powers2020evaluationprecisionrecallfmeasure}.
 \end{itemize}
-
-
 
 %\endnote in some journals will behave like \footnote; and \printendnotes will not output anything. 
 \printendnotes
