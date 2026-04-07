@@ -129,13 +129,13 @@ Voice activity detection (VAD) outputs time intervals with speech. I retain thos
   \centering
   \begin{minipage}[t]{0.54\linewidth}
     \vspace{0pt}
-    I first reviewed comparative VAD evidence on mixed-domain audio at 16\,kHz \autocite{SileroVADQualityMetrics}. In that evaluation, \textbf{Silero v6} reports the best multi-domain ROC-AUC (\textbf{0.97}) and high chunk-level speech accuracy (\textbf{0.92}). The same source notes that \textbf{WebRTC VAD}, although very fast, is weaker at separating speech from noise than from silence. Based on this quality evidence and deployment constraints, I adopted \textbf{Silero VAD} for this pipeline \autocite{SileroVAD,SileroVADQualityMetrics}.
+    I first reviewed comparative VAD evidence on mixed-domain audio at 16\,kHz \cite{SileroVADQualityMetrics}. In that evaluation, \textbf{Silero v6} reports the best multi-domain ROC-AUC (\textbf{0.97}) and high chunk-level speech accuracy (\textbf{0.92}). The same source notes that \textbf{WebRTC VAD}, although very fast, is weaker at separating speech from noise than from silence. Based on this quality evidence and deployment constraints, I adopted \textbf{Silero VAD} for this pipeline \cite{SileroVAD,SileroVADQualityMetrics}.
   \end{minipage}\hfill
   \begin{minipage}[t]{0.42\linewidth}
     \vspace{0pt}
     \includegraphics[width=\linewidth]{images/comparisons of VAD models.png}
   \end{minipage}
-  \caption{Precision-recall comparison across VAD models on multi-domain validation (source: Silero VAD quality metrics).}
+  \caption{Precision-recall comparison across VAD models (source: Silero VAD quality metrics).}
   \label{fig:vad_model_comparison}
 \end{figure}
 \FloatBarrier
@@ -174,11 +174,11 @@ Three ASR candidates are considered: wav2vec2 with a Vietnamese checkpoint \path
   \end{tabular}
 \end{table}
 
-At this stage, wav2vec2 and Zipformer are the two shortlisted options, with \textbf{wav2vec2} currently treated as the likely candidate. This is because it has already been \textbf{applied in our system for some time}, real-time speed is not the most critical requirement for this feature, and the architecture is well known. A final model decision still requires controlled testing (accuracy and latency) on Vietnamese call data in the target runtime environment.
+At this stage, wav2vec2 and Zipformer are the two shortlisted options, with \textbf{wav2vec2} currently treated as the likely candidate. This is because it has already been \textbf{applied in our system for some time}, real-time speed is not the most critical requirement for this feature, and the architecture is well known. A final model decision still requires controlled testing (accuracy and latency) on our small dataset for testing quality.
 
 \subsection{Step 3: LLM Fine-Tuning}
 In the final stage, reconstructed transcripts are turned into a supervised fine-tuning dataset for the downstream LLM.
-What the model must predict is not chosen ad hoc: it is fixed by a \textbf{system-level field configuration} (column names, types, allowed label sets, and output formats).
+What the model must predict is chosen by the customers's settings: it is fixed by a \textbf{system-level field configuration} (column names, types, allowed label sets, and output formats).
 That configuration is the single source of truth for acceptable \texttt{response} values at training and deployment time.
 
 \noindent\textbf{Example system field configuration}\par\nobreak
@@ -226,17 +226,78 @@ Each row is a JSON object with \texttt{instruction}, \texttt{input}, and \texttt
 }
 \end{Verbatim}
 
-Model selection is flexible. Candidate families include:
+\subsubsection{Model Selection \& Architecture}
+Candidate model families are:
 \begin{itemize}
   \item Qwen3.5 (\url{https://huggingface.co/collections/Qwen/qwen35})
-  \item Gemma 4 E4B (\url{https://huggingface.co/google/gemma-4-E4B})
+  \item Gemma~4 E4B (\url{https://huggingface.co/google/gemma-4-E4B})
   \item SmolLM3 (\url{https://huggingface.co/blog/smollm3})
 \end{itemize}
-In reality, I would prioritize smaller models first to reduce running cost.
-If quality is similar, choosing the smallest model is usually sufficient for this task.
+All are decoder-only Transformers built on self-attention~\cite{vaswani2017attention},
+\[
+  \mathrm{Attention}(Q,K,V)=\mathrm{softmax}({QK^{\top}}/{\sqrt{d_k}})\,V,
+\]
+which lets every token attend to the full transcript and resolve the implicit context needed for each structured field.
+Among these candidates, smaller models are preferred: if extraction quality is comparable, a smaller architecture reduces inference and training cost with no downside for this task.
+
+\subsubsection{Fine-Tuning Strategy \& Loss}
+Because updating every parameter of a billion-scale model is expensive, the pipeline uses \textbf{LoRA}~\cite{hu2022lora}: the pre-trained weights $W_0$ are frozen and only a low-rank update $\Delta W = BA$ ($r\!\ll\!\min(d,k)$) is trained, cutting trainable parameters to a small fraction and further reducing GPU cost.
+The training objective is the standard autoregressive \textbf{cross-entropy loss}, computed over response tokens only:
+\begin{equation}
+  \mathcal{L}
+    = -\frac{1}{|\mathcal{R}|}
+      \sum_{t \in \mathcal{R}}
+        \log\, p_\theta\!\bigl(y_t \mid y_{<t}\bigr)
+  \label{eq:ce_loss}
+\end{equation}
+where $\mathcal{R}$ is the set of response-token positions (instruction and input tokens are masked).
+Minimising this loss teaches the model to assign high probability to the exact labels defined by the field configuration.
 
 \section{Evaluation Metrics}
-The conclusion text goes here. 
+Because this proposed pipeline utilizes two distinct deep learning architectures to convert unstructured speech into structured CRM configurations, the evaluation strategy is split into \textbf{audio transcription evaluation} and \textbf{semantic extraction evaluation}.
+
+\subsection{Automatic Speech Recognition (ASR) Evaluation}
+To evaluate the performance of the \texttt{wav2vec2-base-vi} model, we utilize the \textbf{Word Error Rate} (WER).
+WER is the standard metric for acoustic modelling~\cite{wikipedia_wer} as it measures the edit distance between the model's predicted transcript and the manual ground-truth transcript.
+It is mathematically defined as:
+\begin{equation}
+  \mathrm{WER} = \frac{S + D + I}{N}
+  \label{eq:wer}
+\end{equation}
+where $S$ represents the number of word \emph{substitutions}, $D$ represents \emph{deletions}, $I$ represents \emph{insertions}, and $N$ represents the total number of words in the reference transcript.
+
+Minimising WER is important. Benchmarking has shown that \texttt{wav2vec2-base-vi} can achieve a WER of \textbf{6.53\%} on Vietnamese datasets~\cite{nguyenvulebinh_wav2vec2_base_vi}.
+Minimising this acoustic error rate ensures that the downstream language model receives high-quality textual context.
+
+\subsection{Contextual Extraction Evaluation (The LLM)}
+To evaluate the Qwen model's ability to extract the correct customer-configured JSON fields (e.g., \texttt{Budget}, \texttt{Timeline}) from the transcribed text, we treat the task as a \textbf{token / entity classification} problem.
+The system's performance will be measured using \textbf{Precision}, \textbf{Recall}, and the \textbf{F1-Score}.
+
+For each target JSON field, the metrics are mathematically defined using True Positives~(TP), False Positives~(FP), and False Negatives~(FN):
+
+\paragraph{Precision} evaluates how many of the fields the model extracted were actually correct.
+\begin{equation}
+  \mathrm{Precision} = \frac{\mathrm{TP}}{\mathrm{TP} + \mathrm{FP}}
+  \label{eq:precision}
+\end{equation}
+
+\paragraph{Recall} evaluates how many of the actual true fields present in the customer's audio the model successfully caught.
+\begin{equation}
+  \mathrm{Recall} = \frac{\mathrm{TP}}{\mathrm{TP} + \mathrm{FN}}
+  \label{eq:recall}
+\end{equation}
+
+\paragraph{F1-Score} is the mean of Precision and Recall.
+\begin{equation}
+  F_1 = 2 \times \frac{\mathrm{Precision} \times \mathrm{Recall}}{\mathrm{Precision} + \mathrm{Recall}}
+  \label{eq:f1}
+\end{equation}
+
+\subsection{Notes on Metric Selection}
+\begin{itemize}
+    \item \emph{Accuracy} is misleading here because most of the transcript is ordinary conversation with no extractable data. A model that extracts nothing at all would still score $\sim$99\% Accuracy simply by ignoring rare targets~\cite{powers2020evaluationprecisionrecallfmeasure, jeni2013facing}.
+    \item \emph{F1-Score} focuses only on the entities we care about: it drops when the model invents information that was never said (low precision) or overlooks something the customer actually mentioned (low recall)~\cite{powers2020evaluationprecisionrecallfmeasure}.
+\end{itemize}
 
 
 

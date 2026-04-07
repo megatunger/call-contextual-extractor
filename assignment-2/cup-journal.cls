@@ -1414,6 +1414,10 @@
 \def\cup@jnl@medium{%
   \def\cup@journal@name{Cambridge Medium}
   \cup@layout@medium
+  \providecommand{\cup@reference@code}{%
+    \RequirePackage[style=numeric,backend=biber,sorting=none]{biblatex}
+    \renewcommand*{\bibfont}{\footnotesize}
+  }
 }%
 \def\cup@jnl@large{%
   \def\cup@journal@name{Cambridge Large One}
