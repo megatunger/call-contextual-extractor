@@ -59,25 +59,40 @@ Whole-call mono VAD is only reasonable for coarse “is anyone speaking?” chec
 
 ### Step 2: Automatic Speech Recognition (ASR)
 
-ASR runs on a deployed service. Upload each audio file (e.g. VAD segments from the previous step) to the upload endpoint; the API returns transcripts (details depend on the service response).
+ASR runs on a deployed service. POST each audio file (e.g. VAD segments from the previous step) to the recognize endpoint; the API returns transcripts (details depend on the service response).
 
-**Endpoint:** `https://speechv2.ucall.vn/api/record/upload`
+**Endpoint:** `http://103.140.249.39:8000/recognize/`
 
 **Auth:** Send the API key in the `x-api-key` header (store it in an env var, not in source).
 
-Example (multipart upload, field name `audio`):
+**Form fields:**
+
+| Field | Value |
+|-------|--------|
+| `audio_file` | WAV (or other supported) file upload |
+| `word_level` | `"1"` for word-level timestamps in the response |
+
+Example (multipart upload):
+
+```bash
+curl --location 'http://103.140.249.39:8000/recognize/' \
+  --header "x-api-key: ${UCALL_SPEECH_API_KEY}" \
+  --form 'audio_file=@path/to/segment.wav' \
+  --form 'word_level="1"'
+```
 
 ```python
 import os
 import requests
 
-url = "https://speechv2.ucall.vn/api/record/upload"
+url = "http://103.140.249.39:8000/recognize/"
 api_key = os.environ["UCALL_SPEECH_API_KEY"]
 headers = {"x-api-key": api_key}
 
 with open("path/to/segment.wav", "rb") as file:
-    files = {"audio": file}
-    response = requests.post(url, headers=headers, files=files)
+    files = {"audio_file": file}
+    data = {"word_level": "1"}
+    response = requests.post(url, headers=headers, files=files, data=data)
 response.raise_for_status()
 # Parse response JSON / text per API contract
 ```

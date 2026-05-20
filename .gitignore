@@ -1,5 +1,9 @@
 # Jupyter
 .ipynb_checkpoints/
+.virtual_documents/
+
+# Anaconda Project (local file browser DB, etc.)
+anaconda_projects/
 
 # Python (notebooks / kernels)
 __pycache__/
