@@ -59,11 +59,14 @@ def train_model(model_name="unsloth/Qwen2.5-0.5B", dataset_path="data/finetuning
         return { "text" : texts, }
 
     # Load dataset
+    print(f"Loading dataset from: {dataset_path}")
     if not os.path.exists(dataset_path):
         raise FileNotFoundError(f"Dataset not found at {dataset_path}. Please run dataset_builder.py first.")
         
     dataset = load_dataset("json", data_files=dataset_path, split="train")
+    print(f"Dataset successfully loaded. Found {len(dataset)} examples. Formatting prompts...")
     dataset = dataset.map(formatting_prompts_func, batched = True,)
+    print("Formatting complete! Initializing SFTTrainer...")
     
     os.makedirs(output_dir, exist_ok=True)
     trainer = SFTTrainer(
@@ -95,10 +98,13 @@ def train_model(model_name="unsloth/Qwen2.5-0.5B", dataset_path="data/finetuning
     # Check for existing checkpoints to resume
     checkpoints = [d for d in os.listdir(output_dir) if d.startswith("checkpoint")]
     if checkpoints:
-        print(f"Found existing checkpoints in {output_dir}. Resuming from the latest one...")
+        print(f"Found {len(checkpoints)} existing checkpoints in {output_dir}. Resuming training from the latest checkpoint...")
         trainer_stats = trainer.train(resume_from_checkpoint=True)
     else:
+        print("Starting training from scratch...")
         trainer_stats = trainer.train()
+        
+    print(f"Training finished! Final metrics: {trainer_stats.metrics}")
         
     # Save final model
     final_output_path = "data/finetuned_model_lora"
