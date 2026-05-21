@@ -1,8 +1,8 @@
 import os
 import argparse
 from datasets import load_dataset
-from unsloth import FastLanguageModel
-from trl import SFTTrainer
+from unsloth import FastLanguageModel, is_bfloat16_supported
+from trl import SFTTrainer, SFTConfig
 from transformers import TrainingArguments
 
 def train_model(model_name="unsloth/Qwen2.5-0.5B", dataset_path="data/finetuning_dataset.jsonl", output_dir="data/checkpoints"):
@@ -66,25 +66,24 @@ def train_model(model_name="unsloth/Qwen2.5-0.5B", dataset_path="data/finetuning
     dataset = dataset.map(formatting_prompts_func, batched = True,)
     
     os.makedirs(output_dir, exist_ok=True)
-    
     trainer = SFTTrainer(
         model = model,
-        tokenizer = tokenizer,
+        processing_class = tokenizer,
         train_dataset = dataset,
-        dataset_text_field = "text",
-        max_seq_length = max_seq_length,
-        dataset_num_proc = 2,
-        packing = False, # Can make training 5x faster for short sequences.
-        args = TrainingArguments(
+        args = SFTConfig(
+            dataset_text_field = "text",
+            max_length = max_seq_length,
+            dataset_num_proc = 2,
+            packing = False, # Can make training 5x faster for short sequences.
             per_device_train_batch_size = 2,
             gradient_accumulation_steps = 4,
             warmup_steps = 5,
             max_steps = 60, # We use steps for testing, change to num_train_epochs for full run
             learning_rate = 2e-4,
-            fp16 = False, # Handled by unsloth/torch natively on Mac
-            bf16 = False,
+            fp16 = not is_bfloat16_supported(),
+            bf16 = is_bfloat16_supported(),
             logging_steps = 1,
-            optim = "adamw_torch", # adamw_8bit often fails without CUDA
+            optim = "adamw_8bit",
             weight_decay = 0.01,
             lr_scheduler_type = "linear",
             seed = 3407,

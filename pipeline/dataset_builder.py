@@ -69,35 +69,50 @@ def build_dataset(base_dir="data", output_file="data/finetuning_dataset.jsonl"):
     Path(output_file).parent.mkdir(parents=True, exist_ok=True)
     
     added_count = 0
+    import concurrent.futures
+    from tqdm import tqdm
+    import threading
+    
+    write_lock = threading.Lock()
+    
+    def process_file(file_path):
+        with open(file_path, "r", encoding="utf-8") as f:
+            dialogue_lines = json.load(f)
+        
+        transcript_text = "\n".join(dialogue_lines)
+        if not transcript_text.strip():
+            return None, transcript_text, "empty"
+            
+        if transcript_text in processed_transcripts:
+            return None, transcript_text, "processed"
+            
+        extracted_json = extract_fields_from_transcript(transcript_text)
+        if extracted_json:
+            record = {
+                "instruction": PROMPT_INSTRUCTION.strip(),
+                "input": transcript_text,
+                "response": json.dumps(extracted_json, ensure_ascii=False)
+            }
+            return record, transcript_text, "success"
+        return None, transcript_text, "failed"
+
     with open(output_file, "a", encoding="utf-8") as out_f:
-        for file_path in dialogue_files:
-            with open(file_path, "r", encoding="utf-8") as f:
-                dialogue_lines = json.load(f)
+        with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
+            future_to_file = {executor.submit(process_file, fp): fp for fp in dialogue_files}
             
-            # Combine transcript into a single string
-            transcript_text = "\n".join(dialogue_lines)
-            
-            if not transcript_text.strip():
-                print(f"[DEBUG] Skipping empty transcript: {file_path}")
-                continue
-                
-            if transcript_text in processed_transcripts:
-                print(f"[DEBUG] Skipping already processed transcript: {file_path}")
-                continue
-            
-            print(f"[INFO] Calling Gemini for: {file_path}")
-            extracted_json = extract_fields_from_transcript(transcript_text)
-            
-            if extracted_json:
-                # Format for instruction tuning
-                record = {
-                    "instruction": PROMPT_INSTRUCTION.strip(),
-                    "input": transcript_text,
-                    "response": json.dumps(extracted_json, ensure_ascii=False)
-                }
-                out_f.write(json.dumps(record, ensure_ascii=False) + "\n")
-                processed_transcripts.add(transcript_text)
-                added_count += 1
+            for future in tqdm(concurrent.futures.as_completed(future_to_file), total=len(dialogue_files), desc="Building Dataset"):
+                try:
+                    record, transcript_text, status = future.result()
+                    if status == "success" and record:
+                        with write_lock:
+                            if transcript_text not in processed_transcripts:
+                                out_f.write(json.dumps(record, ensure_ascii=False) + "\n")
+                                out_f.flush()
+                                processed_transcripts.add(transcript_text)
+                                added_count += 1
+                except Exception as e:
+                    fp = future_to_file[future]
+                    print(f"Error processing {fp}: {e}")
 
     print(f"Dataset building complete. Added {added_count} new records to {output_file}")
 
