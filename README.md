@@ -182,7 +182,21 @@ Progress bars (`tqdm`) show call-level progress in Stage 1 and segment-level pro
 
 ### Step 3: Dataset Formatting & LLM Fine-Tuning
 
-_Placeholder — workflow TBD._
+In this step, we construct a fine-tuning dataset by passing the transcripts (`final_dialogue.json`) to a teacher LLM (e.g., Gemini `gemini-3.1-flash-lite`) to extract structured customer information. The generated dataset is saved in JSONL format with `instruction`, `input`, and `response` pairs. We then use this dataset to fine-tune a smaller, on-device model (e.g., Unsloth Qwen 3.5 or other candidates) using LoRA.
+
+**Target CRM Fields:**
+- `customer_sector`: string
+- `customer_needs`: a string (summarized)
+- `customer_interested`: number (from scale 1 to 10)
+- `customer_busy`: boolean (true / false)
+- `customer_scheduled_at`: time string (or null if not scheduled)
+- `customer_rating` (optional): number (from scale 1 to 10, sometimes we only have this)
+
+**Scripts:**
+- `pipeline/dataset_builder.py`: Calls the teacher LLM to format the dataset.
+- `pipeline/fine_tuner.py`: Handles LoRA fine-tuning for the specified small models.
+
+Preview and exploration are available in [`03_FineTuning.ipynb`](03_FineTuning.ipynb).
 
 ### Step 4: JSON Extraction & API Service
 

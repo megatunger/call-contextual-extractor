@@ -1,0 +1,119 @@
+import os
+import argparse
+from datasets import load_dataset
+from unsloth import FastLanguageModel
+from trl import SFTTrainer
+from transformers import TrainingArguments
+
+def train_model(model_name="unsloth/Qwen2.5-0.5B", dataset_path="data/finetuning_dataset.jsonl", output_dir="data/checkpoints"):
+    print(f"Loading model: {model_name}")
+    
+    max_seq_length = 2048 # Can be increased based on transcript length
+    dtype = None # None for auto detection
+    load_in_4bit = True # Use 4bit quantization to reduce memory usage
+    
+    model, tokenizer = FastLanguageModel.from_pretrained(
+        model_name = model_name,
+        max_seq_length = max_seq_length,
+        dtype = dtype,
+        load_in_4bit = load_in_4bit,
+    )
+    
+    # Configure LoRA adapters
+    model = FastLanguageModel.get_peft_model(
+        model,
+        r = 16, # Choose any number > 0 ! Suggested 8, 16, 32, 64, 128
+        target_modules = ["q_proj", "k_proj", "v_proj", "o_proj",
+                          "gate_proj", "up_proj", "down_proj",],
+        lora_alpha = 16,
+        lora_dropout = 0, # Supports any, but = 0 is optimized
+        bias = "none",    # Supports any, but = "none" is optimized
+        use_gradient_checkpointing = "unsloth", # True or "unsloth" for very long context
+        random_state = 3407,
+        use_rslora = False,
+        loftq_config = None,
+    )
+
+    # Define a chat template prompt format
+    alpaca_prompt = """Below is an instruction that describes a task, paired with an input that provides further context. Write a response that appropriately completes the request.
+
+### Instruction:
+{}
+
+### Input:
+{}
+
+### Response:
+{}"""
+
+    EOS_TOKEN = tokenizer.eos_token
+    def formatting_prompts_func(examples):
+        instructions = examples["instruction"]
+        inputs       = examples["input"]
+        outputs      = examples["response"]
+        texts = []
+        for instruction, input_text, output in zip(instructions, inputs, outputs):
+            # Must add EOS_TOKEN, otherwise your generation will go on forever!
+            text = alpaca_prompt.format(instruction, input_text, output) + EOS_TOKEN
+            texts.append(text)
+        return { "text" : texts, }
+
+    # Load dataset
+    if not os.path.exists(dataset_path):
+        raise FileNotFoundError(f"Dataset not found at {dataset_path}. Please run dataset_builder.py first.")
+        
+    dataset = load_dataset("json", data_files=dataset_path, split="train")
+    dataset = dataset.map(formatting_prompts_func, batched = True,)
+    
+    os.makedirs(output_dir, exist_ok=True)
+    
+    trainer = SFTTrainer(
+        model = model,
+        tokenizer = tokenizer,
+        train_dataset = dataset,
+        dataset_text_field = "text",
+        max_seq_length = max_seq_length,
+        dataset_num_proc = 2,
+        packing = False, # Can make training 5x faster for short sequences.
+        args = TrainingArguments(
+            per_device_train_batch_size = 2,
+            gradient_accumulation_steps = 4,
+            warmup_steps = 5,
+            max_steps = 60, # We use steps for testing, change to num_train_epochs for full run
+            learning_rate = 2e-4,
+            fp16 = False, # Handled by unsloth/torch natively on Mac
+            bf16 = False,
+            logging_steps = 1,
+            optim = "adamw_torch", # adamw_8bit often fails without CUDA
+            weight_decay = 0.01,
+            lr_scheduler_type = "linear",
+            seed = 3407,
+            output_dir = output_dir,
+            save_steps = 20, # Save checkpoints every 20 steps
+        ),
+    )
+    
+    # Check for existing checkpoints to resume
+    checkpoints = [d for d in os.listdir(output_dir) if d.startswith("checkpoint")]
+    if checkpoints:
+        print(f"Found existing checkpoints in {output_dir}. Resuming from the latest one...")
+        trainer_stats = trainer.train(resume_from_checkpoint=True)
+    else:
+        trainer_stats = trainer.train()
+        
+    # Save final model
+    final_output_path = "data/finetuned_model_lora"
+    print(f"Training complete. Saving LoRA adapters to {final_output_path}")
+    model.save_pretrained(final_output_path)
+    tokenizer.save_pretrained(final_output_path)
+    print("Done!")
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Fine-tune a small LLM using LoRA.")
+    parser.add_argument("--model", type=str, default="unsloth/Qwen2.5-0.5B", 
+                        help="HuggingFace model ID to fine-tune (e.g., unsloth/Qwen2.5-0.5B, unsloth/Llama-3-8b, HuggingFaceTB/SmolLM2-1.7B-Instruct)")
+    parser.add_argument("--dataset", type=str, default="data/finetuning_dataset.jsonl",
+                        help="Path to the JSONL dataset")
+    
+    args = parser.parse_args()
+    train_model(model_name=args.model, dataset_path=args.dataset)
