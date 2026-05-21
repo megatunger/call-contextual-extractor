@@ -13,6 +13,9 @@ __pycache__/
 data/
 .DS_Store
 
+# Secrets
+.env
+
 # LaTeX build / tool outputs (assignment-2)
 assignment-2/**/*.aux
 assignment-2/**/*.bbl

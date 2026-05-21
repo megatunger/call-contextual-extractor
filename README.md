@@ -37,17 +37,19 @@ Aligned with the [Silero VAD wiki — Dependencies](https://github.com/snakers4/
 
 Loads `dataset/staging_calls.csv`, explores fields, and downloads a **limited** set of recording URLs into `data/raw_audio/` (see `TEST_DOWNLOAD_LIMIT` in the notebook).
 
-### Voice activity detection — Silero — [`02_SileroVADTest.ipynb`](02_SileroVADTest.ipynb)
+### VAD → ASR → transcript — [`02b_SileroVAD_Final.ipynb`](02b_SileroVAD_Final.ipynb)
 
-Smoke test: prints **per-file audio metadata** (codec, channels, sample rate, PCM subtype or N/A for compressed files) and runs **Silero VAD** on the **customer channel** when stereo. Tune `VAD_TEST_MAX_FILES` at the top of the notebook.
+Production notebook with **three separable stages** (run independently, stop/resume anytime):
 
-**Batch script (planned, not in repo yet):**
+| Stage | Notebook flag | Output |
+|-------|----------------|--------|
+| 1 — VAD segment | `RUN_STAGE_1_VAD` | `data/segmented_audio/<call>/segments_manifest.jsonl`, `vad.done`, WAV chunks |
+| 2 — ASR | `RUN_STAGE_2_ASR` | `asr_results.jsonl` (checkpointed per segment) |
+| 3 — Merge | `RUN_STAGE_3_MERGE` | `final_dialogue.json` (`Agent:` / `Customer:` lines) |
 
-```bash
-python 01_run_vad.py --input_dir data/raw_audio/ --output_dir data/segmented_audio/
-```
+Implementation lives in [`pipeline/`](pipeline/) (`vad_segment.py`, `asr_recognize.py`, `transcript.py`). Set `MAX_CALLS = None` to process all files in `data/raw_audio/`.
 
-That script should mirror the notebook defaults: **customer-only** segments for downstream context extraction.
+Smoke test notebook: [`02_SileroVADTest.ipynb`](02_SileroVADTest.ipynb) (visual VAD inspection).
 
 #### Stereo recordings and customer-focused context
 
@@ -59,11 +61,11 @@ Whole-call mono VAD is only reasonable for coarse “is anyone speaking?” chec
 
 ### Step 2: Automatic Speech Recognition (ASR)
 
-ASR runs on a deployed service. POST each audio file (e.g. VAD segments from the previous step) to the recognize endpoint; the API returns transcripts (details depend on the service response).
+ASR runs on a deployed service. POST each VAD segment to the recognize endpoint, then merge segment-level transcripts by timestamp to reconstruct a full call conversation (`Agent: ...`, `Customer: ...`).
 
 **Endpoint:** `http://103.140.249.39:8000/recognize/`
 
-**Auth:** Send the API key in the `x-api-key` header (store it in an env var, not in source).
+**Auth:** Send the API key in the `x-api-key` header. Store it in repo-root `.env` as `SPEECH_API_KEY=...` (or export `SPEECH_API_KEY` in your shell; the env var overrides `.env`).
 
 **Form fields:**
 
@@ -76,7 +78,7 @@ Example (multipart upload):
 
 ```bash
 curl --location 'http://103.140.249.39:8000/recognize/' \
-  --header "x-api-key: ${UCALL_SPEECH_API_KEY}" \
+  --header "x-api-key: ${SPEECH_API_KEY}" \
   --form 'audio_file=@path/to/segment.wav' \
   --form 'word_level="1"'
 ```
@@ -86,7 +88,7 @@ import os
 import requests
 
 url = "http://103.140.249.39:8000/recognize/"
-api_key = os.environ["UCALL_SPEECH_API_KEY"]
+api_key = os.environ["SPEECH_API_KEY"]
 headers = {"x-api-key": api_key}
 
 with open("path/to/segment.wav", "rb") as file:
@@ -94,8 +96,89 @@ with open("path/to/segment.wav", "rb") as file:
     data = {"word_level": "1"}
     response = requests.post(url, headers=headers, files=files, data=data)
 response.raise_for_status()
-# Parse response JSON / text per API contract
+# Parse response JSON per contract below
 ```
+
+Expected API response:
+
+```json
+{
+  "success": true,
+  "transcription": "thế sao tôi bận lắm tôi không đi được",
+  "word_levels": [
+    {
+      "word": "thế",
+      "start": 1.9000000000000001,
+      "end": 2.0
+    },
+    {
+      "word": "sao",
+      "start": 2.06,
+      "end": 2.2800000000000002
+    },
+    {
+      "word": "tôi",
+      "start": 2.52,
+      "end": 2.64
+    },
+    {
+      "word": "bận",
+      "start": 2.74,
+      "end": 2.84
+    },
+    {
+      "word": "lắm",
+      "start": 2.94,
+      "end": 3.04
+    },
+    {
+      "word": "tôi",
+      "start": 3.14,
+      "end": 3.24
+    },
+    {
+      "word": "không",
+      "start": 3.2800000000000002,
+      "end": 3.4
+    },
+    {
+      "word": "đi",
+      "start": 3.42,
+      "end": 3.5
+    },
+    {
+      "word": "được",
+      "start": 3.56,
+      "end": 3.7
+    }
+  ]
+}
+```
+
+Failure case:
+
+```json
+{
+  "success": false
+}
+```
+
+Final output format (after merging recognized segments):
+
+```json
+[
+  "Agent: Em có gì không?",
+  "Customer: Dạ không chị ơi"
+]
+```
+
+Resume behavior in `02b_SileroVAD_Final.ipynb`:
+
+- **Stage 1:** calls with `vad.done` are skipped on rerun (`skip_vad_if_done=True`).
+- **Stage 2:** each segment append to `asr_results.jsonl`; successful rows are skipped on rerun (failed rows retried by default).
+- **Stage 3:** rebuilds `final_dialogue.json` from the latest ASR checkpoint.
+
+Progress bars (`tqdm`) show call-level progress in Stage 1 and segment-level progress in Stage 2.
 
 ### Step 3: Dataset Formatting & LLM Fine-Tuning
 
