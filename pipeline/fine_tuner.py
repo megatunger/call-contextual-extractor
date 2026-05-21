@@ -5,7 +5,8 @@ from unsloth import FastLanguageModel, is_bfloat16_supported
 from trl import SFTTrainer, SFTConfig
 from transformers import TrainingArguments
 
-def train_model(model_name="unsloth/Qwen2.5-0.5B", dataset_path="data/finetuning_dataset.jsonl", output_dir="data/checkpoints"):
+def train_model(model_name="Qwen/Qwen3.5-0.8B", dataset_path="data/finetuning_dataset.jsonl", save_name="Qwen3.5-0.8B", epochs=1):
+    output_dir = f"data/checkpoints_{save_name}"
     print(f"Loading model: {model_name}")
     
     max_seq_length = 2048 # Can be increased based on transcript length
@@ -81,7 +82,7 @@ def train_model(model_name="unsloth/Qwen2.5-0.5B", dataset_path="data/finetuning
             per_device_train_batch_size = 2,
             gradient_accumulation_steps = 4,
             warmup_steps = 5,
-            max_steps = 60, # We use steps for testing, change to num_train_epochs for full run
+            num_train_epochs = epochs,
             learning_rate = 2e-4,
             fp16 = not is_bfloat16_supported(),
             bf16 = is_bfloat16_supported(),
@@ -107,7 +108,8 @@ def train_model(model_name="unsloth/Qwen2.5-0.5B", dataset_path="data/finetuning
     print(f"Training finished! Final metrics: {trainer_stats.metrics}")
         
     # Save final model
-    final_output_path = "data/finetuned_model_lora"
+    final_output_path = f"data/models/{save_name}_lora"
+    os.makedirs(final_output_path, exist_ok=True)
     print(f"Training complete. Saving LoRA adapters to {final_output_path}")
     model.save_pretrained(final_output_path)
     tokenizer.save_pretrained(final_output_path)
@@ -115,10 +117,15 @@ def train_model(model_name="unsloth/Qwen2.5-0.5B", dataset_path="data/finetuning
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Fine-tune a small LLM using LoRA.")
-    parser.add_argument("--model", type=str, default="unsloth/Qwen2.5-0.5B", 
-                        help="HuggingFace model ID to fine-tune (e.g., unsloth/Qwen2.5-0.5B, unsloth/Llama-3-8b, HuggingFaceTB/SmolLM2-1.7B-Instruct)")
+    parser.add_argument("--model", type=str, default="Qwen/Qwen3.5-0.8B", 
+                        help="HuggingFace model ID to fine-tune")
     parser.add_argument("--dataset", type=str, default="data/finetuning_dataset.jsonl",
                         help="Path to the JSONL dataset")
     
+    parser.add_argument("--save_name", type=str, default="Qwen3.5-0.8B",
+                        help="Name of the folder to save the trained model into")
+    parser.add_argument("--epochs", type=int, default=1,
+                        help="Number of full dataset passes (epochs) to train for")
+    
     args = parser.parse_args()
-    train_model(model_name=args.model, dataset_path=args.dataset)
+    train_model(model_name=args.model, dataset_path=args.dataset, save_name=args.save_name, epochs=args.epochs)
