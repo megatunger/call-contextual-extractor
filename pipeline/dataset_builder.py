@@ -1,6 +1,7 @@
 import os
 import json
 import glob
+import time
 from pathlib import Path
 from dotenv import load_dotenv
 from google import genai
@@ -86,6 +87,9 @@ def build_dataset(base_dir="data", output_file="data/finetuning_dataset.jsonl"):
         if transcript_text in processed_transcripts:
             return None, transcript_text, "processed"
             
+        # Rate limit: max 15 requests per minute (1 every 4 seconds)
+        time.sleep(4.1)
+            
         extracted_json = extract_fields_from_transcript(transcript_text)
         if extracted_json:
             record = {
@@ -97,7 +101,8 @@ def build_dataset(base_dir="data", output_file="data/finetuning_dataset.jsonl"):
         return None, transcript_text, "failed"
 
     with open(output_file, "a", encoding="utf-8") as out_f:
-        with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
+        # Rate limit: 1 worker ensures strict sequential timing
+        with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
             future_to_file = {executor.submit(process_file, fp): fp for fp in dialogue_files}
             
             for future in tqdm(concurrent.futures.as_completed(future_to_file), total=len(dialogue_files), desc="Building Dataset"):
