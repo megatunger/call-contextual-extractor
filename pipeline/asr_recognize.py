@@ -129,14 +129,32 @@ def run_asr_stage(cfg: PipelineConfig) -> dict:
             "skipped_segments": done_already,
         }
 
+    import concurrent.futures
+
     success_count = 0
-    for row in tqdm(pending, desc="Stage 2 · ASR recognize segments", unit="seg"):
-        asr = recognize_segment(row["path"], cfg)
-        out = {**row, **asr}
-        call_id = row["call_id"]
-        append_jsonl_row(asr_results_path(cfg.segment_output_dir, call_id), out)
-        if out.get("success"):
-            success_count += 1
+    with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
+        future_to_row = {
+            executor.submit(recognize_segment, row["path"], cfg): row
+            for row in pending
+        }
+        
+        for future in tqdm(concurrent.futures.as_completed(future_to_row), total=len(pending), desc="Stage 2 · ASR recognize segments", unit="seg"):
+            row = future_to_row[future]
+            try:
+                asr = future.result()
+            except Exception as exc:
+                asr = {
+                    "success": False,
+                    "transcription": "",
+                    "word_levels": [],
+                    "error": str(exc),
+                }
+            
+            out = {**row, **asr}
+            call_id = row["call_id"]
+            append_jsonl_row(asr_results_path(cfg.segment_output_dir, call_id), out)
+            if out.get("success"):
+                success_count += 1
 
     print_progress("ASR segments completed", total_manifest, total_manifest)
     return {
