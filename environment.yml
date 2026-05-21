@@ -33,3 +33,7 @@ dependencies:
       - python-dotenv
       - google-genai
       - unsloth
+      - fastapi
+      - uvicorn
+      - python-multipart
+      - pydantic
