@@ -54,17 +54,17 @@ def evaluate_models(models, dataset_path="data/finetuning_dataset.jsonl"):
         print(f"Evaluating model: {model_path}")
         print(f"======================================")
         
-        if not os.path.exists(model_path):
-            print(f"Skipping {model_path} - not found.")
+        try:
+            model, tokenizer = FastLanguageModel.from_pretrained(
+                model_name = model_path,
+                max_seq_length = 2048,
+                dtype = None,
+                load_in_4bit = True,
+            )
+            FastLanguageModel.for_inference(model)
+        except Exception as e:
+            print(f"Skipping {model_path} - could not load model. Error: {e}")
             continue
-            
-        model, tokenizer = FastLanguageModel.from_pretrained(
-            model_name = model_path,
-            max_seq_length = 2048,
-            dtype = None,
-            load_in_4bit = True,
-        )
-        FastLanguageModel.for_inference(model)
         
         parse_success = 0
         busy_match = 0
