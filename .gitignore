@@ -31,3 +31,12 @@ assignment-2/**/*.synctex.gz
 assignment-2/**/*.toc
 assignment-2/**/*.lof
 assignment-2/**/*.lot
+
+# Model Caches
+unsloth_compiled_cache/
+huggingface_tokenizers_cache/
+.triton/
+
+# Telemetry & Logging
+runs/
+wandb/
