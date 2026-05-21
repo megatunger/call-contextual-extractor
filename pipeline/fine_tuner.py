@@ -1,4 +1,5 @@
 import os
+os.environ["TORCHDYNAMO_DISABLE"] = "1" # Disable torch.compile to prevent Gemma-4 graph break crashes
 import argparse
 from datasets import load_dataset
 from unsloth import FastLanguageModel, is_bfloat16_supported

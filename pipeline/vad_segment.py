@@ -2,12 +2,27 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import os
+from concurrent.futures import ProcessPoolExecutor, as_completed
 import librosa
 import numpy as np
 import soundfile as sf
 import torch
 from silero_vad import get_speech_timestamps, load_silero_vad
 from tqdm.auto import tqdm
+
+_worker_model = None
+
+def _init_worker():
+    global _worker_model
+    import torch
+    torch.set_num_threads(1)
+    from silero_vad import load_silero_vad
+    _worker_model = load_silero_vad()
+
+def _process_file_wrapper(path, cfg):
+    global _worker_model
+    return segment_one_call(path, _worker_model, cfg)
 
 from pipeline.checkpoints import (
     ensure_call_dir,
@@ -117,9 +132,17 @@ def run_vad_stage(cfg: PipelineConfig, model=None) -> dict:
     print_progress("VAD calls already done", skipped, len(raw_files))
 
     total_segments = 0
-    for path in tqdm(pending, desc="Stage 1 · VAD segment calls", unit="call"):
-        segments = segment_one_call(path, model, cfg)
-        total_segments += len(segments)
+    max_workers = min(16, (os.cpu_count() or 4))
+    
+    with ProcessPoolExecutor(max_workers=max_workers, initializer=_init_worker) as executor:
+        futures = {executor.submit(_process_file_wrapper, path, cfg): path for path in pending}
+        
+        for future in tqdm(as_completed(futures), total=len(pending), desc="Stage 1 · VAD segment calls", unit="call"):
+            try:
+                segments = future.result()
+                total_segments += len(segments)
+            except Exception as e:
+                print(f"Error processing {futures[future].name}: {e}")
 
     print_progress("VAD calls completed", len(raw_files), len(raw_files))
     return {
