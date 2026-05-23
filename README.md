@@ -1,9 +1,9 @@
 # Call Contextual Extractor
 
-## Dataset:
+## Dataset
 
-- Only very small subset dataset file is available in Repo
-- To download the full dataset (12726 records), please contact
+- In repo: `dataset/staging_calls.demo.csv` (~20 rows)
+- Full export (~12.7k recordings) — contact for access
 
 ## Installation
 
@@ -40,7 +40,7 @@ Aligned with the [Silero VAD wiki — Dependencies](https://github.com/snakers4/
 
 ### Data preparation — [`01_PrepareDataCalls.ipynb`](01_PrepareDataCalls.ipynb)
 
-Loads `dataset/staging_calls.csv`, explores fields, and downloads a **limited** set of recording URLs into `data/raw_audio/` (see `TEST_DOWNLOAD_LIMIT` in the notebook).
+Uses `dataset/staging_calls.csv` (not in repo — use `staging_calls.demo.csv` for a small run, or get the full CSV). Downloads recording URLs into `data/raw_audio/` (`TEST_DOWNLOAD_LIMIT` in notebook).
 
 ### VAD → ASR → transcript — [`02b_SileroVAD_Final.ipynb`](02b_SileroVAD_Final.ipynb)
 
@@ -54,15 +54,13 @@ Production notebook with **three separable stages** (run independently, stop/res
 
 Implementation lives in [`pipeline/`](pipeline/) (`vad_segment.py`, `asr_recognize.py`, `transcript.py`). Set `MAX_CALLS = None` to process all files in `data/raw_audio/`.
 
-Smoke test notebook: [`02_SileroVADTest.ipynb`](02_SileroVADTest.ipynb) (visual VAD inspection).
+Smoke test: [`02a_SileroVAD_Test.ipynb`](02a_SileroVAD_Test.ipynb) (visual VAD on customer channel).
 
-#### Stereo recordings and customer-focused context
+#### Stereo (UCall)
 
-For **contextual extraction** (what the **customer** said or needs), **splitting the legs matters**. A **mono downmix** blends agent and customer, which weakens attribution and makes it harder to **focus on the customer**.
+Left = agent, right = customer (`CUSTOMER_CHANNEL_INDEX = 1` in [`02a_SileroVAD_Test.ipynb`](02a_SileroVAD_Test.ipynb)). Avoid mono downmix — you lose speaker attribution.
 
-**Default for this project:** **UCall** stereo recordings use **left = agent**, **right = customer** → **split channels** and run **VAD / ASR on the customer channel** (**channel index 1**, `CUSTOMER_CHANNEL_INDEX` in [`02_SileroVADTest.ipynb`](02_SileroVADTest.ipynb)). **Why 16 kHz:** Silero’s wideband model expects **16 kHz** (fixed chunk size vs sample rate); raw files are often **48 kHz**, so the notebook resamples before VAD.
-
-Whole-call mono VAD is only reasonable for coarse “is anyone speaking?” checks, not for **customer-centric** pipelines.
+[`02b_SileroVAD_Final.ipynb`](02b_SileroVAD_Final.ipynb) and [`api.py`](api.py) VAD/ASR **both** Agent + Customer channels, then merge by time. Silero expects 16 kHz; pipeline resamples from 48 kHz when needed.
 
 ### Step 2: Automatic Speech Recognition (ASR)
 
@@ -184,102 +182,52 @@ Progress bars (`tqdm`) show call-level progress in Stage 1 and segment-level pro
 
 ### Step 3: Dataset Formatting & LLM Fine-Tuning
 
-In this step, we construct a fine-tuning dataset by passing the transcripts (`final_dialogue.json`) to a teacher LLM (e.g., Gemini `gemini-3.1-flash-lite`) to extract structured customer information. The generated dataset is saved in JSONL format with `instruction`, `input`, and `response` pairs. We then use this dataset to fine-tune a smaller, on-device model (e.g., Unsloth Qwen 3.5 or other candidates) using LoRA.
+Gemini teacher (`gemini-3.1-flash-lite`, `GEMINI_API_KEY` in `.env`) labels `data/segmented_audio/*/final_dialogue.json` → `data/finetuning_dataset.jsonl` (`instruction`, `input`, `response`). LoRA fine-tune with Unsloth — [`03_FineTuning.ipynb`](03_FineTuning.ipynb).
 
-**Target CRM Fields:**
+**CRM fields:** `customer_sector`, `customer_needs`, `customer_interested` (1–10), `customer_busy`, `customer_scheduled_at`, `customer_rating` (optional).
 
-- `customer_sector`: string
-- `customer_needs`: a string (summarized)
-- `customer_interested`: number (from scale 1 to 10)
-- `customer_busy`: boolean (true / false)
-- `customer_scheduled_at`: time string (or null if not scheduled)
-- `customer_rating` (optional): number (from scale 1 to 10, sometimes we only have this)
-
-**Scripts:**
-
-- `pipeline/dataset_builder.py`: Calls the teacher LLM to format the dataset.
-- `pipeline/fine_tuner.py`: Handles LoRA fine-tuning for the specified small models.
-
-Preview and exploration are available in [`03_FineTuning.ipynb`](03_FineTuning.ipynb).
+**Scripts:** [`pipeline/dataset_builder.py`](pipeline/dataset_builder.py), [`pipeline/fine_tuner.py`](pipeline/fine_tuner.py). Adapters under `data/models/`.
 
 ### Step 4: Model Evaluation, JSON Extraction & API Service
 
-After fine-tuning (Step 3), compare candidate models on held-out transcripts, then serve the full **audio → CRM JSON** pipeline over HTTP.
+#### Evaluation — [`04_Evaluation.ipynb`](04_Evaluation.ipynb)
 
-#### Model evaluation — [`04_Evaluation.ipynb`](04_Evaluation.ipynb)
+[`pipeline/evaluator.py`](pipeline/evaluator.py) runs 20 random rows (`seed=42`) from `data/finetuning_dataset.jsonl` against Gemini labels in `response`. Writes `data/evaluation_results.csv`; notebook has bar charts.
 
-Runs [`pipeline/evaluator.py`](pipeline/evaluator.py) on a **fixed random sample** (20 rows, `seed=42`) from `data/finetuning_dataset.jsonl`, comparing each model’s structured output to the **Gemini teacher labels** in the `response` field.
-
-**Metrics:**
-
-| Metric | Meaning |
-| ------ | ------- |
-| `Valid_JSON_%` | Share of samples where the model output parses as JSON |
-| `Busy_Accuracy_%` | Exact match on `customer_busy` (among valid JSON rows) |
-| `Sector_Match_%` | Exact match on `customer_sector` (case-insensitive) |
-| `Schedule_Match_%` | Exact match on `customer_scheduled_at` |
-| `Interested_MAE` | Mean absolute error on `customer_interested` (1–10) |
-| `Rating_MAE` | Mean absolute error on `customer_rating` when present |
-
-Results are written to `data/evaluation_results.csv`; the notebook plots parsability, field-match accuracy, and MAE with seaborn.
-
-**CLI (local or after Colab setup):**
+| Metric | Notes |
+| ------ | ----- |
+| `Valid_JSON_%` | Parses as JSON |
+| `Busy_Accuracy_%` | `customer_busy` exact match |
+| `Sector_Match_%` | `customer_sector`, case-insensitive |
+| `Schedule_Match_%` | `customer_scheduled_at` exact match |
+| `Interested_MAE` | `customer_interested` |
+| `Rating_MAE` | `customer_rating` when set |
 
 ```bash
 python pipeline/evaluator.py --models data/models/Qwen3.5-2B_lora data/models/Qwen3.5-0.8B_lora
 ```
 
-On Colab (GPU), the notebook installs `condacolab`, mounts Drive, and pulls Unsloth drivers (`unsloth[colab-new]`, `xformers`, etc.) before running the evaluator.
+Colab: condacolab + Drive mount + Unsloth pip deps (see notebook).
 
-#### End-to-end API — [`api.py`](api.py) · demo [`05_API_Demo_Colab.ipynb`](05_API_Demo_Colab.ipynb)
+#### API — [`api.py`](api.py) · [`05_API_Demo_Colab.ipynb`](05_API_Demo_Colab.ipynb)
 
-[`api.py`](api.py) exposes a single FastAPI endpoint that chains the production pipeline:
-
-1. **Upload** call audio (WAV or other supported format)
-2. **VAD** — Silero segments on the customer channel ([`pipeline/vad_segment.py`](pipeline/vad_segment.py))
-3. **ASR** — parallel requests to the recognize service ([`pipeline/asr_recognize.py`](pipeline/asr_recognize.py); requires `SPEECH_API_KEY` in `.env`)
-4. **Merge** — `Agent:` / `Customer:` lines ([`pipeline/transcript.py`](pipeline/transcript.py))
-5. **Extract** — fine-tuned LoRA inference ([`pipeline/inference.py`](pipeline/inference.py))
-
-At startup the server loads Silero VAD and the LoRA adapter at `data/models/Qwen3.5-2B_lora` (override path in `api.py` if needed). Uploaded files and segment dirs are removed after each request.
-
-**Run locally:**
+`POST /extract` — upload audio → VAD → ASR (`SPEECH_API_KEY`) → merge transcript → LoRA JSON (`data/models/Qwen3.5-2B_lora`). Temp files deleted per request.
 
 ```bash
 conda activate ml-audio-llm
 uvicorn api:app --host 0.0.0.0 --port 8000
 ```
 
-**Request:** `POST /extract` — multipart form field `file` (audio upload).
-
-**Success response:**
+```bash
+curl -X POST "http://127.0.0.1:8000/extract" -F "file=@path/to/call.wav"
+```
 
 ```json
 {
   "call_id": "uuid",
   "transcript": "Agent: ...\nCustomer: ...",
-  "extraction": {
-    "customer_sector": "...",
-    "customer_needs": "...",
-    "customer_interested": 5,
-    "customer_busy": false,
-    "customer_scheduled_at": null,
-    "customer_rating": null
-  }
+  "extraction": { "customer_sector": "...", "customer_needs": "...", "customer_interested": 5, "customer_busy": false, "customer_scheduled_at": null, "customer_rating": null }
 }
 ```
 
-**Example:**
-
-```bash
-curl -X POST "http://127.0.0.1:8000/extract" \
-  -F "file=@path/to/call.wav"
-```
-
-**Colab + ngrok:** [`05_API_Demo_Colab.ipynb`](05_API_Demo_Colab.ipynb) runs the same server on a Colab GPU, opens an [ngrok](https://ngrok.com/) tunnel on port 8000, and prints a public URL so you can hit `/extract` from Postman or your local machine. Set your ngrok auth token in the notebook (`ngrok.set_auth_token(...)`); do not commit tokens to the repo.
-
-**Scripts:**
-
-- [`pipeline/evaluator.py`](pipeline/evaluator.py): Multi-model benchmark → `data/evaluation_results.csv`
-- [`pipeline/inference.py`](pipeline/inference.py): LoRA load + `generate_extraction()` (used by the API and CLI)
-- [`api.py`](api.py): FastAPI app with `/extract`
+Colab demo: same `uvicorn` on GPU, ngrok on port 8000 — notebook prints the public URL for `/extract`. Add your ngrok token in the notebook cell; keep it out of git.
