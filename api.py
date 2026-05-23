@@ -30,7 +30,7 @@ async def lifespan(app: FastAPI):
     
     print("Loading LLM model...")
     try:
-        AppState.llm_model, AppState.llm_tokenizer = load_model("data/finetuned_model_lora")
+        AppState.llm_model, AppState.llm_tokenizer = load_model("data/models/Qwen3.5-2B_lora")
     except FileNotFoundError as e:
         print(f"Warning: Could not load LLM. {e}")
     

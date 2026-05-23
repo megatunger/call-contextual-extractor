@@ -67,6 +67,13 @@ Return only JSON. Do not include markdown formatting or extra text."""
     response_marker = "### Response:\n"
     if response_marker in decoded:
         json_output = decoded.split(response_marker)[1].strip()
+        
+        # Clean up any trailing text (like <think> tokens)
+        start_idx = json_output.find('{')
+        end_idx = json_output.rfind('}')
+        if start_idx != -1 and end_idx != -1 and end_idx > start_idx:
+            json_output = json_output[start_idx:end_idx+1]
+            
         try:
             return json.loads(json_output)
         except json.JSONDecodeError:
