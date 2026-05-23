@@ -11,6 +11,7 @@ __pycache__/
 
 # Local data (not versioned)
 data/
+dataset/
 .DS_Store
 
 # Secrets
