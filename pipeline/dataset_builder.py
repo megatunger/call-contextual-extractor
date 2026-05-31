@@ -23,7 +23,7 @@ else:
 MODEL_NAME = "gemini-3.1-flash-lite"
 
 # ~15 RPM per worker; 3 workers ≈ 45 RPM overall
-GEMINI_MAX_WORKERS = 3
+GEMINI_MAX_WORKERS = 1
 GEMINI_REQUEST_INTERVAL_SEC = 4.1
 
 TRAIN_RATIO = 0.8
@@ -148,12 +148,13 @@ def build_dataset(base_dir="data", output_file=DEFAULT_POOL_FILE):
     search_pattern = os.path.join(base_dir, "segmented_audio", "*", "final_dialogue.json")
     dialogue_files = glob.glob(search_pattern)
 
-    processed_transcripts = set()
+    processed_calls = set()
     if os.path.exists(output_file):
         for record in load_records(output_file):
-            processed_transcripts.add(record.get("input", ""))
+            if "call_id" in record:
+                processed_calls.add(record["call_id"])
 
-    print(f"Found {len(dialogue_files)} dialogue files. {len(processed_transcripts)} already processed.")
+    print(f"Found {len(dialogue_files)} dialogue files. {len(processed_calls)} already processed.")
 
     Path(output_file).parent.mkdir(parents=True, exist_ok=True)
 
@@ -171,10 +172,10 @@ def build_dataset(base_dir="data", output_file=DEFAULT_POOL_FILE):
         transcript_text = "\n".join(dialogue_lines)
         call_id = Path(file_path).parent.name
         if not transcript_text.strip():
-            return None, transcript_text, "empty"
+            return None, call_id, "empty"
 
-        if transcript_text in processed_transcripts:
-            return None, transcript_text, "processed"
+        if call_id in processed_calls:
+            return None, call_id, "processed"
 
         time.sleep(GEMINI_REQUEST_INTERVAL_SEC)
 
@@ -186,8 +187,8 @@ def build_dataset(base_dir="data", output_file=DEFAULT_POOL_FILE):
                 "input": transcript_text,
                 "response": json.dumps(extracted_json, ensure_ascii=False),
             }
-            return record, transcript_text, "success"
-        return None, transcript_text, "failed"
+            return record, call_id, "success"
+        return None, call_id, "failed"
 
     with open(output_file, "a", encoding="utf-8") as out_f:
         with concurrent.futures.ThreadPoolExecutor(max_workers=GEMINI_MAX_WORKERS) as executor:
@@ -201,13 +202,13 @@ def build_dataset(base_dir="data", output_file=DEFAULT_POOL_FILE):
                 desc="Building Dataset",
             ):
                 try:
-                    record, transcript_text, status = future.result()
+                    record, processed_id, status = future.result()
                     if status == "success" and record:
                         with write_lock:
-                            if transcript_text not in processed_transcripts:
+                            if record["call_id"] not in processed_calls:
                                 out_f.write(json.dumps(record, ensure_ascii=False) + "\n")
                                 out_f.flush()
-                                processed_transcripts.add(transcript_text)
+                                processed_calls.add(record["call_id"])
                                 added_count += 1
                 except Exception as e:
                     fp = future_to_file[future]

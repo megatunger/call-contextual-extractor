@@ -35,6 +35,8 @@
 
 \documentclass[unnumsec,webpdf,modern,large]{oup-authoring-template}%
 %\onecolumn % for one column layouts
+\usepackage{tikz}
+\usetikzlibrary{shapes.geometric, arrows.meta, positioning}
 
 %\usepackage{showframe}
 
@@ -170,17 +172,17 @@ Decisions to lock before drafting, so every section of the report (Introduction 
   \item[G3.] Future directions (2--3): scale to 13k, human-audited labels, streaming/real-time ASR, multi-tenant CRM schema?
 \end{enumerate}
 
-\subsection*{H. Conclusion (Sec.~7) + formatting}
+\subsection*{H. Conclusion (Sec.~7) + formatting}  
 \begin{enumerate}
   \item[H1.] Single headline takeaway sentence?
   \item[H2.] Template/format final: this OUP/PNAS style, or switch to NeurIPS/ICLR? Page limit?
   \item[H3.] Citation style + reference manager (BibTeX \texttt{reference.bib}); cite datasets, HF models, libraries?
   \item[H4.] Anonymisation / data-availability statement wording (internal data --- can it be shared?).
-\end{enumerate}
-
+\end{enumerate} 
+ 
 \noindent\textbf{Agreed by:} Student \underline{\hspace{4cm}} \quad Supervisor \underline{\hspace{4cm}} \quad Date \underline{\hspace{3cm}}
 
-\vspace{1em}
+\vspace{1em}   
 \noindent\rule{\textwidth}{0.4pt}
 \smallskip
 \noindent\textit{End of placeholder section --- remove everything above this line before submission.}
@@ -199,7 +201,7 @@ Decisions to lock before drafting, so every section of the report (Introduction 
 \section{Introduction}
 \label{sec:introduction}
 
-\subsection{Problem Statement}
+\subsection{Problem Statement} 
 Sales agents on the uCall platform currently fill in customer data fields by hand after every call. This manual process takes too much time and causes errors. We are building an automated system to extract structured CRM fields directly from raw audio calls.
 
 \subsection{Motivation}
@@ -212,18 +214,108 @@ Manual data entry costs businesses time and money. Large language models can ext
     \item Deployed a fine tuned local language model that extracts data without relying on expensive cloud APIs.
 \end{itemize}
 
-\section{Related Work}
+\section{Related Work} 
 \label{sec:related-work}
+Information extraction from spoken dialogue combines speech recognition and language modeling. Existing methods often rely on huge language models for zero shot extraction like ChatGPT \cite{wei2023zero_shot_ie} or use separate large scale speech models like Whisper \cite{whisper_repo}. While these approaches are accurate they are very expensive and slow for business use. Other research focuses on base architectures \cite{vaswani2017attention} or audio models like wav2vec 2.0 \cite{baevski2020wav2vec2} and Zipformer \cite{zipformer_paper}. However most studies look at these models in isolation. The gap in the current literature is a lack of end to end systems optimized for specific tasks on cheap hardware. Our approach combines a Vietnamese wav2vec 2.0 model with a small local language model. We use LoRA \cite{hu2022lora} to train this small model to perform extraction as well as massive models.
 
 \subsection{Novelty and Significance}
+This project is novel because it \textbf{builds a complete pipeline from raw stereo audio to structured data without relying on huge external APIs}. We use Silero VAD \cite{SileroVAD} to clean the audio and maintain speaker channels. Then we \textbf{fine tune a small local model to replace expensive cloud services}. The significance of this work is that it \textbf{provides a practical blueprint for companies to automate data entry}. It shows that businesses can \textbf{achieve high accuracy on domain specific tasks using local hardware}.
 
-\section{Methodology}
-\label{sec:methodology}
+\section{Methodology} 
+\label{sec:methodology} 
+
+The goal of this work is to automatically extract customer information from call audio and fill the CRM fields. We propose a three-stage pipeline to accomplish this, as illustrated in Figure~\ref{fig:pipeline}. 
+
+\begin{figure}[hbt!]
+  \centering
+  \resizebox{0.6\linewidth}{!}{
+  \begin{tikzpicture}[
+      node distance=0.5cm,
+      block/.style={rectangle, draw, fill=blue!10, text width=4.5cm, text centered, rounded corners, minimum height=0.6cm, font=\small},
+      data/.style={rectangle, draw, fill=green!10, text width=4.5cm, text centered, minimum height=0.6cm, font=\small},
+      arrow/.style={thick,->,>=stealth}
+    ]
+    \node [data] (audio) {Raw Stereo Audio};
+    \node [block, below=of audio] (vad) {Stage 1: VAD (Silero)};
+    \node [data, below=of vad] (segments) {Speech Segments};
+    \node [block, below=of segments] (asr) {Stage 2: ASR (wav2vec 2.0)};
+    \node [data, below=of asr] (transcript) {Vietnamese Transcript};
+    \node [block, below=of transcript] (llm) {Stage 3: LLM Fine-Tuning};
+    \node [data, below=of llm] (json) {Structured CRM Data};
+    
+    \draw [arrow] (audio) -- (vad);
+    \draw [arrow] (vad) -- (segments);
+    \draw [arrow] (segments) -- (asr);
+    \draw [arrow] (asr) -- (transcript);
+    \draw [arrow] (transcript) -- (llm);
+    \draw [arrow] (llm) -- (json);
+  \end{tikzpicture}
+  }
+  \caption{The three-stage contextual extraction pipeline.}
+  \label{fig:pipeline}
+\end{figure}
+
+\subsection{Stage 1: Voice Activity Detection (VAD)}
+Raw files contain silence, hold tones, background noise, and non-speech events, which increase speech recognition errors. Preprocessing limits those segments. Recordings are stereo, with the agent on the left channel and the customer on the right. Since downstream analysis targets the customer, we isolate the right channel before VAD. 
+
+We reviewed comparative VAD evidence on mixed-domain audio at 16\,kHz \cite{SileroVADQualityMetrics}. In that evaluation, \textbf{Silero v6} reports the best multi-domain ROC-AUC (\textbf{0.97}) and high chunk-level speech accuracy (\textbf{0.92}). Based on this quality evidence and deployment constraints, we adopted \textbf{Silero VAD} for this pipeline \cite{SileroVAD,SileroVADQualityMetrics}. We retain the speech intervals and drop the rest, removing long silent regions and background sound prior to ASR. Figure~\ref{fig:vad_before_after} shows an example call before and after VAD processing.
+
+\begin{figure}[hbt!]
+  \centering
+  \includegraphics[width=\linewidth]{images/before_after_process_vad.png}
+  \caption{One call: stereo mix (left) and customer channel with VAD speech regions (right).}
+  \label{fig:vad_before_after}
+\end{figure}
+
+\subsection{Stage 2: Automatic Speech Recognition (ASR)}
+After VAD segmentation, each speech-only chunk is forwarded to an Automatic Speech Recognition (ASR) model to convert audio segments into unstructured text transcripts. The segment transcripts are then merged by timestamp to reconstruct the full-call transcript. 
+
+Three ASR candidates were considered: wav2vec 2.0 with a Vietnamese checkpoint \cite{nguyenvulebinh_wav2vec2_base_vi}, Whisper \cite{whisper_repo}, and Zipformer \cite{zipformer_hf,zipformer_paper}. Ultimately, we chose the wav2vec 2.0 model (\texttt{nguyenvulebinh/wav2vec2-base-vi}) because it has already been running reliably in our production environment for 1.5 years.
+
+In a real-world startup environment, practical constraints often matter just as much as theoretical benchmarks. Relying on a proven, already-integrated model avoids the technical debt and unexpected blockers that can come with migrating to an entirely new architecture. Because of this existing infrastructure, the pipeline implementation does not load the ASR model locally. Instead, it delegates the transcription task by making calls to our internal, containerized API that serves the model.
+
+\subsection{Stage 3: LLM Fine-Tuning}
+In the final stage, reconstructed transcripts are formatted into a supervised fine-tuning dataset for a downstream large language model. The model is trained to extract a comprehensive set of customer information in a single pass, outputting a structured JSON object. The target CRM schema contains six specific fields, as detailed in Table~\ref{tab:crm_fields}.
+
+\begin{table}[hbt!]
+  \centering
+  \caption{CRM JSON Field Schema Extracted by the LLM}
+  \label{tab:crm_fields}
+  \begin{tabular}{p{0.35\linewidth} p{0.15\linewidth} p{0.4\linewidth}}
+    \toprule
+    \textbf{Field Name} & \textbf{Data Type} & \textbf{Description} \\
+    \midrule
+    \texttt{customer\_sector} & String$|$Null & Industry or sector \\
+    \texttt{customer\_needs} & String & Brief summary of what the customer needs \\
+    \texttt{customer\_interested} & Number & 1--10 scale of interest \\
+    \texttt{customer\_busy} & Boolean & True if they said they are busy, false otherwise \\
+    \texttt{customer\_scheduled\_at} & String$|$Null & Time or date they want to be called back \\
+    \texttt{customer\_rating} & Number$|$Null & Optional 1--10 rating, if available \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+For supervised fine-tuning, each transcript yields a single training row. Each row is a JSON object containing the \texttt{instruction} (the extraction prompt and schema), the \texttt{input} (the full call transcript), and the \texttt{response} (the exact JSON output with all six fields populated).
+
+\subsubsection{Model Architecture and Loss}
+Candidate model families for extraction include Qwen3.5, Gemma-4-E4B, and SmolLM3. All are decoder-only Transformer models \cite{vaswani2017attention} built on self-attention:
+\[
+  \mathrm{Attention}(Q,K,V)=\mathrm{softmax}({QK^{\top}}/{\sqrt{d_k}})\,V,
+\]
+which allows tokens to attend to the full transcript to resolve implicit context. Smaller models are preferred to reduce inference and training costs.
+
+Because updating every parameter of the model is computationally expensive, we employ Low-Rank Adaptation (LoRA) \cite{hu2022lora}. The pre-trained weights are frozen and only a low-rank update is trained, cutting trainable parameters to a small fraction. We train using the standard autoregressive cross-entropy loss over the response tokens:
+\begin{equation}
+  \mathcal{L} = -\frac{1}{|\mathcal{R}|} \sum_{t \in \mathcal{R}} \log\, p_\theta\!\bigl(y_t \mid y_{<t}\bigr)
+  \label{eq:ce_loss}
+\end{equation}
+where $\mathcal{R}$ is the set of response-token positions. Minimising this loss teaches the model to assign high probability to the exact labels defined by the CRM field configuration.
 
 \section{Experimental Setup}
 \label{sec:experimental-setup}
 
 \subsection{Data}
+The dataset is extracted from the internal staging database of our organization, consisting of real manual sales calls made through the CRM system. We selected calls with a duration greater than 5 seconds to exclude empty or dropped connections. The full export contains 13,232 stereo audio records. For the purposes of evaluating the extraction pipeline in this project, a subset of 600 calls is used, partitioned into an 80/20 train-test split for supervised fine-tuning.
 
 \subsection{Hardware and Software}
 
@@ -244,7 +336,7 @@ Manual data entry costs businesses time and money. Large language models can ext
 \section{Conclusion}
 \label{sec:conclusion}
 
-% \bibliographystyle{oup-plain}
-% \bibliography{reference}
+\bibliographystyle{oup-plain}
+\bibliography{reference}
 
 \end{document}
