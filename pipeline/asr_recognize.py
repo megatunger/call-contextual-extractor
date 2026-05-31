@@ -132,7 +132,7 @@ def run_asr_stage(cfg: PipelineConfig) -> dict:
     import concurrent.futures
 
     success_count = 0
-    with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
+    with concurrent.futures.ThreadPoolExecutor(max_workers=50) as executor:
         future_to_row = {
             executor.submit(recognize_segment, row["path"], cfg): row
             for row in pending

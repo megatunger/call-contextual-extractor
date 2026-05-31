@@ -182,7 +182,9 @@ Progress bars (`tqdm`) show call-level progress in Stage 1 and segment-level pro
 
 ### Step 3: Dataset Formatting & LLM Fine-Tuning
 
-Gemini teacher (`gemini-3.1-flash-lite`, `GEMINI_API_KEY` in `.env`) labels `data/segmented_audio/*/final_dialogue.json` → `data/finetuning_dataset.jsonl` (`instruction`, `input`, `response`). LoRA fine-tune with Unsloth — [`03_FineTuning.ipynb`](03_FineTuning.ipynb).
+Gemini teacher (`gemini-3.1-flash-lite`, `GEMINI_API_KEY` in `.env`) labels `data/segmented_audio/*/final_dialogue.json` → `data/finetuning_dataset.jsonl` (full labeled pool). [`pipeline/dataset_builder.py`](pipeline/dataset_builder.py) then writes an **80/20 train/test split** (`finetuning_dataset_train.jsonl`, `finetuning_dataset_test.jsonl`, `seed=42`). LoRA fine-tune on the train split with Unsloth — [`03_FineTuning.ipynb`](03_FineTuning.ipynb).
+
+Re-split only (no Gemini calls): `python pipeline/dataset_builder.py --split-only`
 
 **CRM fields:** `customer_sector`, `customer_needs`, `customer_interested` (1–10), `customer_busy`, `customer_scheduled_at`, `customer_rating` (optional).
 
@@ -192,7 +194,7 @@ Gemini teacher (`gemini-3.1-flash-lite`, `GEMINI_API_KEY` in `.env`) labels `dat
 
 #### Evaluation — [`04_Evaluation.ipynb`](04_Evaluation.ipynb)
 
-[`pipeline/evaluator.py`](pipeline/evaluator.py) runs 20 random rows (`seed=42`) from `data/finetuning_dataset.jsonl` against Gemini labels in `response`. Writes `data/evaluation_results.csv`; notebook has bar charts.
+[`pipeline/evaluator.py`](pipeline/evaluator.py) runs on the **held-out test split** (`data/finetuning_dataset_test.jsonl`) against Gemini labels in `response`. Writes `data/evaluation_results.csv`; notebook has bar charts.
 
 | Metric | Notes |
 | ------ | ----- |

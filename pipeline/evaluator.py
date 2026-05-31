@@ -23,18 +23,17 @@ def safe_mae(pred, target):
     except:
         return None
 
-def evaluate_models(models, dataset_path="data/finetuning_dataset.jsonl"):
+def evaluate_models(models, dataset_path="data/finetuning_dataset_test.jsonl"):
     print("Loading test dataset...")
     if not os.path.exists(dataset_path):
         print(f"Dataset {dataset_path} not found!")
+        print("Run dataset_builder.py first to create the 80/20 train/test split.")
         return
-        
+
     dataset = load_dataset("json", data_files=dataset_path, split="train")
-    
-    # We select a fixed random sample of 20 elements (or the entire dataset if smaller)
-    num_test = min(20, len(dataset))
-    test_dataset = dataset.shuffle(seed=42).select(range(num_test))
-    print(f"Selected {num_test} samples for evaluation.")
+    test_dataset = dataset
+    num_test = len(test_dataset)
+    print(f"Evaluating on {num_test} held-out test examples from {dataset_path}.")
     
     results = []
     
@@ -162,6 +161,12 @@ if __name__ == "__main__":
         "data/models/Qwen3.5-0.8B_lora", 
         "data/models/gemma-4-E4B_lora"
     ], help="List of model paths to evaluate")
+    parser.add_argument(
+        "--dataset",
+        type=str,
+        default="data/finetuning_dataset_test.jsonl",
+        help="Path to the test JSONL (20%% split from dataset_builder.py)",
+    )
     args = parser.parse_args()
-    
-    evaluate_models(args.models)
+
+    evaluate_models(args.models, dataset_path=args.dataset)

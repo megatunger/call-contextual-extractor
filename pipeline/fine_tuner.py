@@ -6,7 +6,7 @@ from unsloth import FastLanguageModel, is_bfloat16_supported
 from trl import SFTTrainer, SFTConfig
 from transformers import TrainingArguments
 
-def train_model(model_name="Qwen/Qwen3.5-0.8B", dataset_path="data/finetuning_dataset.jsonl", save_name="Qwen3.5-0.8B", epochs=1):
+def train_model(model_name="Qwen/Qwen3.5-0.8B", dataset_path="data/finetuning_dataset_train.jsonl", save_name="Qwen3.5-0.8B", epochs=1):
     output_dir = f"data/checkpoints_{save_name}"
     print(f"Loading model: {model_name}")
     
@@ -63,7 +63,10 @@ def train_model(model_name="Qwen/Qwen3.5-0.8B", dataset_path="data/finetuning_da
     # Load dataset
     print(f"Loading dataset from: {dataset_path}")
     if not os.path.exists(dataset_path):
-        raise FileNotFoundError(f"Dataset not found at {dataset_path}. Please run dataset_builder.py first.")
+        raise FileNotFoundError(
+            f"Dataset not found at {dataset_path}. "
+            "Run dataset_builder.py first (writes train/test splits from the labeled pool)."
+        )
         
     dataset = load_dataset("json", data_files=dataset_path, split="train")
     print(f"Dataset successfully loaded. Found {len(dataset)} examples. Formatting prompts...")
@@ -120,8 +123,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Fine-tune a small LLM using LoRA.")
     parser.add_argument("--model", type=str, default="Qwen/Qwen3.5-0.8B", 
                         help="HuggingFace model ID to fine-tune")
-    parser.add_argument("--dataset", type=str, default="data/finetuning_dataset.jsonl",
-                        help="Path to the JSONL dataset")
+    parser.add_argument("--dataset", type=str, default="data/finetuning_dataset_train.jsonl",
+                        help="Path to the training JSONL (80%% split from dataset_builder.py)")
     
     parser.add_argument("--save_name", type=str, default="Qwen3.5-0.8B",
                         help="Name of the folder to save the trained model into")
