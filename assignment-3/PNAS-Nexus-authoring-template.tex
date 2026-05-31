@@ -1,0 +1,243 @@
+%%
+%% Copyright 2026 Oxford University Press
+%%
+%%
+%% v1.3 released March 2026
+%%
+%% This file is part of the 'pnas-nexus-authoring-template Bundle'.
+%% ---------------------------------------------
+%%
+%% It may be distributed under the conditions of the LaTeX Project Public
+%% License, either version 1.2 of this license or (at your option) any
+%% later version.  The latest version of this license is in
+%%    http://www.latex-project.org/lppl.txt
+%% and version 1.2 or later is part of all distributions of LaTeX
+%% version 1999/12/01 or later.
+%%
+%% The list of all files belonging to the 'pnas-nexus-authoring-template Bundle' is
+%% given in the file `manifest.txt'.
+%%
+%% Template article for PNAS Nexus's document class `oup-authoring-template'
+%% with bibliographic references
+%%
+%%
+%% Change log
+%%
+%% v1.0 2021
+%%    Adapted from oup_authoring_template.cls for use with pnas-nexus-authoring-template.tex
+%% v1.1 August 2024
+%%    Adjusted text of copyright statement for use with pnas-nexus-authoring-template.tex
+%% v1.2 January 2025
+%%    Updated journal logo
+%% v1.3 March 2026
+%%    Updated page design
+
+
+\documentclass[unnumsec,webpdf,modern,large]{oup-authoring-template}%
+%\onecolumn % for one column layouts
+
+%\usepackage{showframe}
+
+\graphicspath{{Fig/}}
+\def\societylogo{}
+
+% line numbers
+%\usepackage[mathlines, switch]{lineno}
+%\usepackage[right]{lineno}
+
+\theoremstyle{thmstyleone}%
+\newtheorem{theorem}{Theorem}%  meant for continuous numbers
+%%\newtheorem{theorem}{Theorem}[section]% meant for sectionwise numbers
+%% optional argument [theorem] produces theorem numbering sequence instead of independent numbers for Proposition
+\newtheorem{proposition}[theorem]{Proposition}%
+%%\newtheorem{proposition}{Proposition}% to get separate numbers for theorem and proposition etc.
+\theoremstyle{thmstyletwo}%
+\newtheorem{example}{Example}%
+\newtheorem{remark}{Remark}%
+\theoremstyle{thmstylethree}%
+\newtheorem{definition}{Definition}
+
+\begin{document}
+
+\journaltitle{} 
+\DOI{DOI added during production}
+\copyrightyear{2026}
+\pubyear{2026}
+\vol{0} 
+\issue{0}
+\access{Published: Date added during production}
+\appnotes{Paper}
+
+\firstpage{1}
+
+%\subtitle{Subject Section}
+
+\title[Contextual extraction with a LoRA-fine-tuned LM]{Contextual information extraction of customer data from sales audio calls using a LoRA-fine-tuned language model}
+
+\author[1]{Thomas Hoang}
+
+\address[1]{\orgname{Student ID: A1984077}}
+
+\received{Date}{0}{2026}
+\revised{Date}{0}{2026}
+\accepted{Date}{0}{2026}
+
+%\editor{Associate Editor: Name}
+
+\abstract{Sales agents on our CRM platform (uCall) currently fill in customer fields by hand after every call. This project presents a three-stage pipeline to automate that process: (1) Silero VAD removes silence and noise from the raw audio, (2) a wav2vec\,2.0 model transcribes the remaining speech in Vietnamese, and (3) a LoRA-fine-tuned LLM extracts structured CRM fields from the transcript. The full staging export comprises 13{,}232 manual sales calls; all reported VAD, ASR, fine-tuning, and extraction results use a subset of 600 calls, with an 80/20 train--test split for the extraction stage. Evaluation uses Word Error Rate for ASR and field-level metrics on the held-out test set (JSON validity and agreement with teacher labels).} 
+
+\keywords{keyword1, keyword2, keyword3, keyword4}
+
+\keywords[Abbreviations]{abbreviation1, abbreviation2, abbreviation3, abbreviation4}
+
+\otherabstract[Significance statement]{Research reports require a significance statement of between 50 and 120 words. Abbreviations are permitted, but citations cannot be included. If required, un-comment this element in the template to include. The heading is included automatically.}
+
+\maketitle
+\thispagestyle{empty}
+
+%\begin{epigraph}
+%Epigraph text. Ximporem qui reperov idempedit modio. Bisto imagnatem quae aceptis
+%nobitae quid eum rae adignis quias-sit vellacc uptatur sunt quis rentis eaquasit alia deliquam
+%rec-to consed unt. Empor sum ratur ressimusdae. Nam fugiae.
+%\source{Epigraph source}
+%\end{epigraph}
+
+% =============================================================================
+% PLACEHOLDER --- delete this entire section before final submission / export.
+% =============================================================================
+\section*{Scope and assumptions agreement \textit{(draft placeholder---remove later)}}
+\label{sec:scope-agreement-placeholder}
+
+\noindent\textit{This section is for supervisor/student alignment only. It is not part of the final paper. Delete everything from here through the horizontal rule below once scope, data, methods, and evaluation are agreed.}
+
+\subsection*{Purpose}
+Decisions to lock before drafting, so every section of the report (Introduction $\rightarrow$ Conclusion) uses the \emph{same} numbers, names, and claims. For each item, mark the chosen answer; anything left as \textbf{TBD} blocks writing that section.
+
+\subsection*{A. Global consistency (must match in every section, abstract, and figures)}
+\begin{enumerate}
+  \item[A1.] Project title / one-line problem statement --- final wording?
+  \item[A2.] Product name spelling and casing (``uCall'') used everywhere?
+  \item[A3.] Corpus numbers: full $=13{,}232$; used $=600$; split $=480$ train $/$ $120$ test --- frozen for all sections?
+  \item[A4.] Canonical stage names: ``VAD'', ``ASR'', ``Contextual Extraction'' --- fixed labels and order?
+  \item[A5.] CRM field list + types (\texttt{customer\_sector}, \texttt{customer\_needs}, \texttt{customer\_interested} 1--10, \texttt{customer\_busy} bool, \texttt{customer\_scheduled\_at} date$|$null, \texttt{customer\_rating}) --- final schema?
+  \item[A6.] Terminology: ``teacher / student'', ``LoRA'', ``fine-tune'' vs ``distill'' --- pick one vocabulary.
+  \item[A7.] Random seeds reported (data split $=42$; training $=3407$) --- state both?
+\end{enumerate}
+
+\subsection*{B. Introduction (Sec.~1)}
+\begin{enumerate}
+  \item[B1.] Motivation framing: business cost of manual entry, or broader ML/ASR+LLM angle, or both?
+  \item[B2.] Exactly which 2--3 contributions do we claim? (pipeline / stereo dialogue / LLM-labeled LoRA / deployable API)
+  \item[B3.] Do we claim any quantitative headline result in the intro, or keep it qualitative?
+\end{enumerate}
+
+\subsection*{C. Related Work + Novelty (Sec.~2)}
+\begin{enumerate}
+  \item[C1.] Scope of literature: VAD, Vietnamese ASR, small-LLM info-extraction, LLM-as-judge/teacher --- which to include?
+  \item[C2.] Stated gap we address (e.g.\ end-to-end Vietnamese telesales $\rightarrow$ CRM JSON with small local models)?
+  \item[C3.] Novelty claim wording --- is it ``novel system/application'' rather than ``novel algorithm''? Agree honestly.
+\end{enumerate}
+
+\subsection*{D. Methodology (Sec.~3)}
+\begin{enumerate}
+  \item[D1.] System diagram: include? what blocks/arrows? who produces it?
+  \item[D2.] Which equations are required (CE loss over response tokens, LoRA $\Delta W = BA$, attention, WER)?
+  \item[D3.] Depth on ASR: describe deployed service as black box, or include model internals?
+  \item[D4.] Prompt/label schema shown verbatim (the Gemini extraction prompt)?
+\end{enumerate}
+
+\subsection*{E. Experimental Setup (Sec.~4)}
+\begin{enumerate}
+  \item[E1.] Data subsection: SQL filter, duration rule, dedup, language --- what to disclose?
+  \item[E2.] Train/val/test --- do we add a validation set or keep train/test only? Justify.
+  \item[E3.] Hardware/software: exact GPU (Colab T4/A100?), PyTorch + Unsloth + bitsandbytes versions?
+  \item[E4.] Hyperparameter table contents: $r{=}16$, $\alpha{=}16$, dropout $0$, lr $2\mathrm{e}{-4}$, batch $2$, grad-accum $4$, epochs $1$, max-seq $2048$, 4-bit --- final values?
+  \item[E5.] Which models actually trained/reported (Qwen3.5-2B, Qwen3.5-0.8B, Gemma-4-E4B)?
+\end{enumerate}
+
+\subsection*{F. Results (Sec.~5)}
+\begin{enumerate}
+  \item[F1.] Baseline definition: base (non-fine-tuned) model? Gemini upper bound? trivial majority class?
+  \item[F2.] Final metric set: WER (ASR) + Valid JSON \%, busy acc, sector/schedule match, interested/rating MAE --- and do we add Precision/Recall/F1?
+  \item[F3.] Required figures: loss curve, per-field bar chart, call-duration histogram, VAD before/after --- which make the cut?
+  \item[F4.] Honesty on the earlier no-split bug --- report corrected numbers only, or show before/after?
+\end{enumerate}
+
+\subsection*{G. Discussion (Sec.~6, highest weight)}
+\begin{enumerate}
+  \item[G1.] Which ``war stories'' to tell (forgot train/test split; rate-limited Gemini labeling; stereo vs mono; resampling; checkpoint/resume)?
+  \item[G2.] Key learnings to highlight (teacher-bias ceiling, small-model viability, data quality $>$ size)?
+  \item[G3.] Future directions (2--3): scale to 13k, human-audited labels, streaming/real-time ASR, multi-tenant CRM schema?
+\end{enumerate}
+
+\subsection*{H. Conclusion (Sec.~7) + formatting}
+\begin{enumerate}
+  \item[H1.] Single headline takeaway sentence?
+  \item[H2.] Template/format final: this OUP/PNAS style, or switch to NeurIPS/ICLR? Page limit?
+  \item[H3.] Citation style + reference manager (BibTeX \texttt{reference.bib}); cite datasets, HF models, libraries?
+  \item[H4.] Anonymisation / data-availability statement wording (internal data --- can it be shared?).
+\end{enumerate}
+
+\noindent\textbf{Agreed by:} Student \underline{\hspace{4cm}} \quad Supervisor \underline{\hspace{4cm}} \quad Date \underline{\hspace{3cm}}
+
+\vspace{1em}
+\noindent\rule{\textwidth}{0.4pt}
+\smallskip
+\noindent\textit{End of placeholder section --- remove everything above this line before submission.}
+% =============================================================================
+
+\clearpage
+
+% -----------------------------------------------------------------------------
+% Assignment report outline (sections 1--7, titles only)
+% -----------------------------------------------------------------------------
+\makeatletter
+\@unnumsecfalse
+\makeatother
+\setcounter{secnumdepth}{2}
+
+\section{Introduction}
+\label{sec:introduction}
+
+\subsection{Problem Statement}
+
+\subsection{Motivation}
+
+\subsection{Contributions}
+
+\section{Related Work}
+\label{sec:related-work}
+
+\subsection{Novelty and Significance}
+
+\section{Methodology}
+\label{sec:methodology}
+
+\section{Experimental Setup}
+\label{sec:experimental-setup}
+
+\subsection{Data}
+
+\subsection{Hardware and Software}
+
+\subsection{Hyperparameters}
+
+\section{Results}
+\label{sec:results}
+
+\section{Discussion}
+\label{sec:discussion}
+
+\subsection{Obstacles and Strategies}
+
+\subsection{What We Learned}
+
+\subsection{Future Directions}
+
+\section{Conclusion}
+\label{sec:conclusion}
+
+% \bibliographystyle{oup-plain}
+% \bibliography{reference}
+
+\end{document}
