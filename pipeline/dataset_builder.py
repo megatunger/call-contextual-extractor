@@ -22,6 +22,10 @@ else:
 
 MODEL_NAME = "gemini-3.1-flash-lite"
 
+# ~15 RPM per worker; 3 workers ≈ 45 RPM overall
+GEMINI_MAX_WORKERS = 3
+GEMINI_REQUEST_INTERVAL_SEC = 4.1
+
 TRAIN_RATIO = 0.8
 SPLIT_SEED = 42
 
@@ -172,7 +176,7 @@ def build_dataset(base_dir="data", output_file=DEFAULT_POOL_FILE):
         if transcript_text in processed_transcripts:
             return None, transcript_text, "processed"
 
-        time.sleep(4.1)
+        time.sleep(GEMINI_REQUEST_INTERVAL_SEC)
 
         extracted_json = extract_fields_from_transcript(transcript_text)
         if extracted_json:
@@ -186,7 +190,7 @@ def build_dataset(base_dir="data", output_file=DEFAULT_POOL_FILE):
         return None, transcript_text, "failed"
 
     with open(output_file, "a", encoding="utf-8") as out_f:
-        with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
+        with concurrent.futures.ThreadPoolExecutor(max_workers=GEMINI_MAX_WORKERS) as executor:
             future_to_file = {
                 executor.submit(process_file, fp): fp for fp in dialogue_files
             }
