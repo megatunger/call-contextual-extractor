@@ -2,6 +2,7 @@ import os
 import json
 import argparse
 import pandas as pd
+import difflib
 from datasets import load_dataset
 from unsloth import FastLanguageModel
 
@@ -14,6 +15,15 @@ def parse_json(text):
         return json.loads(text)
     except:
         return None
+
+def soft_match(pred, gt):
+    if not pred or not gt: return pred == gt
+    pred = str(pred).strip().lower()
+    gt = str(gt).strip().lower()
+    if pred == gt: return True
+    if pred in gt or gt in pred: return True
+    if difflib.SequenceMatcher(None, pred, gt).ratio() > 0.8: return True
+    return False
 
 def safe_mae(pred, target):
     if pred is None or target is None:
@@ -102,16 +112,16 @@ def evaluate_models(models, dataset_path="data/finetuning_dataset_test.jsonl"):
                 if pred_json.get("customer_busy") == ground_truth.get("customer_busy"):
                     busy_match += 1
                     
-                # String Match 100%: Sector
-                pred_sector = str(pred_json.get("customer_sector")).strip().lower()
-                gt_sector = str(ground_truth.get("customer_sector")).strip().lower()
-                if pred_sector == gt_sector:
+                # Soft Match: Sector
+                pred_sector = pred_json.get("customer_sector")
+                gt_sector = ground_truth.get("customer_sector")
+                if soft_match(pred_sector, gt_sector):
                     sector_match += 1
                     
-                # String Match 100%: Scheduled At
-                pred_sched = str(pred_json.get("customer_scheduled_at")).strip().lower()
-                gt_sched = str(ground_truth.get("customer_scheduled_at")).strip().lower()
-                if pred_sched == gt_sched:
+                # Soft Match: Scheduled At
+                pred_sched = pred_json.get("customer_scheduled_at")
+                gt_sched = ground_truth.get("customer_scheduled_at")
+                if soft_match(pred_sched, gt_sched):
                     scheduled_match += 1
                     
                 # MAE: Interested
@@ -132,8 +142,14 @@ def evaluate_models(models, dataset_path="data/finetuning_dataset_test.jsonl"):
             "Busy_Accuracy_%": round((busy_match / parse_success) * 100, 2) if parse_success > 0 else 0,
             "Sector_Match_%": round((sector_match / parse_success) * 100, 2) if parse_success > 0 else 0,
             "Schedule_Match_%": round((scheduled_match / parse_success) * 100, 2) if parse_success > 0 else 0,
+            
             "Interested_MAE": round(sum(interested_diffs) / len(interested_diffs), 2) if interested_diffs else None,
+            "Interested_MSE": round(sum(d**2 for d in interested_diffs) / len(interested_diffs), 2) if interested_diffs else None,
+            "Interested_Acc_±1_%": round(sum(1 for d in interested_diffs if d <= 1) / len(interested_diffs) * 100, 2) if interested_diffs else None,
+            
             "Rating_MAE": round(sum(rating_diffs) / len(rating_diffs), 2) if rating_diffs else None,
+            "Rating_MSE": round(sum(d**2 for d in rating_diffs) / len(rating_diffs), 2) if rating_diffs else None,
+            "Rating_Acc_±1_%": round(sum(1 for d in rating_diffs if d <= 1) / len(rating_diffs) * 100, 2) if rating_diffs else None,
         }
         
         print(f"Results for {metrics['Model']}:")

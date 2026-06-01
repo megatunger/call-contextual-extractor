@@ -325,6 +325,8 @@ The dataset is extracted from the internal staging database of our organization,
 \section{Results}
 \label{sec:results}
 
+Evaluation uses deterministic substring/soft-matching for semantic fields (\texttt{customer\_sector} and \texttt{customer\_scheduled\_at}) to handle terminology differences. Numerical variables are evaluated with both Mean Squared Error (MSE) to penalize large deviations and a $\pm 1$ accuracy tolerance to account for subjective human scaling.
+
 \section{Discussion}
 \label{sec:discussion}
 
