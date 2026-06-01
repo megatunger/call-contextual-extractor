@@ -13,6 +13,165 @@ from unsloth import FastLanguageModel
 LIVE_RESULTS_CSV = "data/evaluation_results_live.csv"
 PROGRESS_JSON = "data/evaluation_progress.json"
 
+def _is_mlx_backend() -> bool:
+    try:
+        from unsloth.device_type import DEVICE_TYPE
+
+        return DEVICE_TYPE == "mlx"
+    except Exception:
+        return False
+
+def _is_cuda_peft_lora_dir(path: str) -> bool:
+    root = Path(path)
+    if not root.is_dir():
+        return False
+    has_peft_weights = (root / "adapter_model.safetensors").is_file() or (
+        root / "adapter_model.bin"
+    ).is_file()
+    has_mlx_weights = (root / "adapters.safetensors").is_file()
+    return has_peft_weights and not has_mlx_weights
+
+def _merged_sibling_path(lora_path: str) -> str:
+    if lora_path.endswith("_lora"):
+        return lora_path[: -len("_lora")] + "_merged"
+    return f"{lora_path.rstrip('/')}_merged"
+
+def _resolve_model_path_for_eval(model_path: str) -> str:
+    """On MLX, Colab PEFT LoRA folders need a merged export; use *_merged if present."""
+    if not _is_mlx_backend() or not model_path.endswith("_lora"):
+        return model_path
+
+    merged = _merged_sibling_path(model_path)
+    if Path(merged).is_dir():
+        print(
+            f"MLX: loading merged weights at {merged} "
+            f"(CUDA LoRA at {model_path} is not MLX-compatible)"
+        )
+        return merged
+
+    if _is_cuda_peft_lora_dir(model_path):
+        print(
+            f"\nMLX cannot load CUDA/PEFT LoRA at {model_path} "
+            f"(missing MLX adapter metadata such as num_layers).\n"
+            "On Colab, after training, run:\n"
+            f"  python pipeline/export_merged.py --lora {model_path}\n"
+            f"Then re-run evaluation (will pick up {merged}).\n"
+        )
+    return model_path
+
+def _load_model_for_eval(model_path: str):
+    load_kwargs = {
+        "model_name": model_path,
+        "max_seq_length": 2048,
+        "dtype": None,
+        "load_in_4bit": True,
+    }
+    if _is_mlx_backend():
+        # Qwen3.5 on Apple Silicon defaults to mlx-vlm; text-only avoids treating prompts as image paths.
+        load_kwargs["text_only"] = True
+    model, tokenizer = FastLanguageModel.from_pretrained(**load_kwargs)
+    FastLanguageModel.for_inference(model)
+    return model, tokenizer
+
+def _mlx_text_tokenizer(tokenizer):
+    return getattr(tokenizer, "tokenizer", tokenizer)
+
+def _is_mlx_vlm_wrapper(model) -> bool:
+    return bool(
+        getattr(model, "_is_vlm_model", False)
+        or getattr(model, "_unsloth_text_only_vlm", False)
+    )
+
+class _CopyableStreamingDetokenizer:
+    """mlx_vlm copies detokenizers; NaiveStreamingDetokenizer.text breaks copy.deepcopy."""
+
+    def __init__(self, tokenizer):
+        from mlx_vlm.tokenizer_utils import NaiveStreamingDetokenizer
+
+        self._tokenizer = tokenizer
+        self._inner = NaiveStreamingDetokenizer(tokenizer)
+
+    def __copy__(self):
+        return _CopyableStreamingDetokenizer(self._tokenizer)
+
+    def reset(self):
+        self._inner.reset()
+
+    def add_token(self, token, skip_special_token_ids=None):
+        if skip_special_token_ids is None:
+            skip_special_token_ids = []
+        self._inner.add_token(token, skip_special_token_ids)
+
+    def finalize(self):
+        self._inner.finalize()
+
+    @property
+    def text(self):
+        return self._inner.text
+
+    @property
+    def tokens(self):
+        return self._inner.tokens
+
+    @property
+    def last_segment(self):
+        return self._inner.last_segment
+
+
+class _MlxVlmTextProcessorAdapter:
+    """Bridge Unsloth HF processors to mlx_vlm (callable tokenizer + detokenizer)."""
+
+    def __init__(self, processor):
+        self._processor = processor
+        self.tokenizer = getattr(processor, "tokenizer", processor)
+        self.detokenizer = _CopyableStreamingDetokenizer(self.tokenizer)
+
+    def __getattr__(self, name):
+        return getattr(self._processor, name)
+
+
+def _ensure_mlx_vlm_processor(processor):
+    if hasattr(processor, "detokenizer") and hasattr(processor, "tokenizer"):
+        inner = getattr(processor, "tokenizer", None)
+        if inner is not None and callable(inner):
+            return processor
+    return _MlxVlmTextProcessorAdapter(processor)
+
+def _generate_completion(model, tokenizer, prompt: str, max_new_tokens: int = 256) -> str:
+    if _is_mlx_backend():
+        if _is_mlx_vlm_wrapper(model):
+            # Qwen3.5 on Apple Silicon: Unsloth keeps mlx-vlm wrappers for text_only=True.
+            from mlx_vlm.generate import generate as vlm_generate
+
+            processor = _ensure_mlx_vlm_processor(tokenizer)
+            result = vlm_generate(
+                model,
+                processor,
+                prompt,
+                image=None,
+                max_tokens=max_new_tokens,
+                verbose=False,
+            )
+            return result.text
+
+        from mlx_lm.generate import generate as mlx_generate
+
+        return mlx_generate(
+            model,
+            _mlx_text_tokenizer(tokenizer),
+            prompt,
+            max_tokens=max_new_tokens,
+            verbose=False,
+        )
+    inputs = tokenizer([prompt], return_tensors="pt").to(model.device)
+    outputs = model.generate(
+        **inputs,
+        max_new_tokens=max_new_tokens,
+        use_cache=True,
+        pad_token_id=tokenizer.eos_token_id,
+    )
+    return tokenizer.batch_decode(outputs, skip_special_tokens=True)[0]
+
 def parse_json(text):
     try:
         start = text.find("{")
@@ -200,8 +359,8 @@ def _running_metrics_row(
 
 def _model_display_info(model_path: str) -> tuple[str, str]:
     name = os.path.basename(model_path.rstrip("/"))
-    is_finetuned = name.endswith("_lora")
-    model_label = name.replace("_lora", "")
+    is_finetuned = name.endswith("_lora") or name.endswith("_merged")
+    model_label = name.replace("_lora", "").replace("_merged", "")
     variant = "fine-tuned" if is_finetuned else "base"
     return model_label, variant
 
@@ -277,23 +436,27 @@ def evaluate_models(
         print(f"\n======================================")
         print(f"Evaluating model: {model_path}")
         print(f"======================================")
+
+        load_path = _resolve_model_path_for_eval(model_path)
+        if (
+            _is_mlx_backend()
+            and model_path.endswith("_lora")
+            and load_path == model_path
+            and _is_cuda_peft_lora_dir(model_path)
+        ):
+            print(f"Skipping {model_path} on MLX until merged export exists.")
+            continue
         
         try:
-            model, tokenizer = FastLanguageModel.from_pretrained(
-                model_name = model_path,
-                max_seq_length = 2048,
-                dtype = None,
-                load_in_4bit = True,
-            )
-            FastLanguageModel.for_inference(model)
+            model, tokenizer = _load_model_for_eval(load_path)
         except Exception as e:
             print(f"Skipping {model_path} - could not load model. Error: {e}")
             continue
         
         model_label, variant = _model_display_info(model_path)
         progress_label = f"{model_label} ({variant})"
-        ckpt_path = _checkpoint_path(ckpt_dir, model_path)
-        samples_path = _samples_path(ckpt_dir, model_path)
+        ckpt_path = _checkpoint_path(ckpt_dir, load_path)
+        samples_path = _samples_path(ckpt_dir, load_path)
         if not resume:
             if ckpt_path.is_file():
                 ckpt_path.unlink()
@@ -341,15 +504,14 @@ def evaluate_models(
             pred_json = None
 
             if ground_truth is not None:
-                inputs = tokenizer([alpaca_prompt.format(instruction, input_text)], return_tensors="pt").to(model.device)
-                outputs = model.generate(**inputs, max_new_tokens=256, use_cache=True, pad_token_id=tokenizer.eos_token_id)
-                decoded = tokenizer.batch_decode(outputs, skip_special_tokens=True)[0]
+                prompt = alpaca_prompt.format(instruction, input_text)
+                decoded = _generate_completion(model, tokenizer, prompt)
 
                 response_marker = "### Response:\n"
                 if response_marker in decoded:
                     pred_text = decoded.split(response_marker)[1].strip()
                 else:
-                    pred_text = decoded
+                    pred_text = decoded.strip()
 
                 pred_json = parse_json(pred_text)
 

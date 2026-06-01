@@ -3,23 +3,29 @@ import argparse
 import json
 from unsloth import FastLanguageModel
 
+def _is_mlx_backend() -> bool:
+    try:
+        from unsloth.device_type import DEVICE_TYPE
+
+        return DEVICE_TYPE == "mlx"
+    except Exception:
+        return False
+
 def load_model(model_name="data/finetuned_model_lora"):
     if not os.path.exists(model_name):
         raise FileNotFoundError(f"Error: Model directory '{model_name}' not found. Please run the fine-tuning script to generate the LoRA adapters first.")
     
     print(f"Loading finetuned model from: {model_name}...")
-    max_seq_length = 2048
-    dtype = None
-    load_in_4bit = True
+    load_kwargs = {
+        "model_name": model_name,
+        "max_seq_length": 2048,
+        "dtype": None,
+        "load_in_4bit": True,
+    }
+    if _is_mlx_backend():
+        load_kwargs["text_only"] = True
 
-    model, tokenizer = FastLanguageModel.from_pretrained(
-        model_name=model_name,
-        max_seq_length=max_seq_length,
-        dtype=dtype,
-        load_in_4bit=load_in_4bit,
-    )
-    
-    # Enable native 2x faster inference
+    model, tokenizer = FastLanguageModel.from_pretrained(**load_kwargs)
     FastLanguageModel.for_inference(model)
     return model, tokenizer
 
@@ -48,20 +54,29 @@ Output valid JSON matching this schema exactly:
 }
 Return only JSON. Do not include markdown formatting or extra text."""
 
-    inputs = tokenizer(
-        [
-            alpaca_prompt.format(
-                instruction.strip(), # instruction
-                transcript.strip(),  # input
-                "", # output - leave this blank for generation!
-            )
-        ], return_tensors="pt").to(model.device)
+    prompt = alpaca_prompt.format(instruction.strip(), transcript.strip(), "")
+    if _is_mlx_backend():
+        is_vlm = bool(
+            getattr(model, "_is_vlm_model", False)
+            or getattr(model, "_unsloth_text_only_vlm", False)
+        )
+        if is_vlm:
+            from mlx_vlm.generate import generate as vlm_generate
+            from pipeline.evaluator import _ensure_mlx_vlm_processor
 
-    # Generate the output tokens
-    outputs = model.generate(**inputs, max_new_tokens=256, use_cache=True)
-    
-    # Decode and extract just the response
-    decoded = tokenizer.batch_decode(outputs, skip_special_tokens=True)[0]
+            processor = _ensure_mlx_vlm_processor(tokenizer)
+            decoded = vlm_generate(
+                model, processor, prompt, image=None, max_tokens=256, verbose=False
+            ).text
+        else:
+            from mlx_lm.generate import generate as mlx_generate
+
+            text_tokenizer = getattr(tokenizer, "tokenizer", tokenizer)
+            decoded = mlx_generate(model, text_tokenizer, prompt, max_tokens=256, verbose=False)
+    else:
+        inputs = tokenizer([prompt], return_tensors="pt").to(model.device)
+        outputs = model.generate(**inputs, max_new_tokens=256, use_cache=True)
+        decoded = tokenizer.batch_decode(outputs, skip_special_tokens=True)[0]
     
     # Parse the output to get everything after '### Response:'
     response_marker = "### Response:\n"

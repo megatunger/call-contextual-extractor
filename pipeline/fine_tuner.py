@@ -117,6 +117,12 @@ def train_model(model_name="Qwen/Qwen3.5-0.8B", dataset_path="data/finetuning_da
     print(f"Training complete. Saving LoRA adapters to {final_output_path}")
     model.save_pretrained(final_output_path)
     tokenizer.save_pretrained(final_output_path)
+    merged_output_path = f"data/models/{save_name}_merged"
+    print(
+        f"\nFor Mac MLX evaluation, export a merged copy (run once on Colab/GPU):\n"
+        f"  python pipeline/export_merged.py --lora {final_output_path}\n"
+        f"  -> {merged_output_path}"
+    )
     print("Done!")
 
 if __name__ == "__main__":
