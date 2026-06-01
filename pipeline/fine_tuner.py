@@ -10,7 +10,7 @@ def train_model(model_name="Qwen/Qwen3.5-0.8B", dataset_path="data/finetuning_da
     output_dir = f"data/checkpoints_{save_name}"
     print(f"Loading model: {model_name}")
     
-    max_seq_length = 2048 # Can be increased based on transcript length
+    max_seq_length = 1024 # Reduced from 2048 to save memory for 4B+ models
     dtype = None # None for auto detection
     load_in_4bit = True # Use 4bit quantization to reduce memory usage
     
@@ -91,7 +91,7 @@ def train_model(model_name="Qwen/Qwen3.5-0.8B", dataset_path="data/finetuning_da
             fp16 = not is_bfloat16_supported(),
             bf16 = is_bfloat16_supported(),
             logging_steps = 1,
-            optim = "adamw_8bit",
+            optim = "paged_adamw_8bit", # Use paged optimizer to offload states to CPU RAM
             weight_decay = 0.01,
             lr_scheduler_type = "linear",
             seed = 3407,
