@@ -83,8 +83,8 @@ def train_model(model_name="Qwen/Qwen3.5-0.8B", dataset_path="data/finetuning_da
             max_length = max_seq_length,
             dataset_num_proc = 2,
             packing = False, # Can make training 5x faster for short sequences.
-            per_device_train_batch_size = 2,
-            gradient_accumulation_steps = 4,
+            per_device_train_batch_size = 1,
+            gradient_accumulation_steps = 8,
             warmup_steps = 5,
             num_train_epochs = epochs,
             learning_rate = 2e-4,
