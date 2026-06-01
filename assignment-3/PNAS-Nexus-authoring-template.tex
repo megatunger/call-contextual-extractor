@@ -155,7 +155,7 @@ Decisions to lock before drafting, so every section of the report (Introduction 
   \item[E2.] Train/val/test --- do we add a validation set or keep train/test only? Justify.
   \item[E3.] Hardware/software: exact GPU (Colab T4/A100?), PyTorch + Unsloth + bitsandbytes versions?
   \item[E4.] Hyperparameter table contents: $r{=}16$, $\alpha{=}16$, dropout $0$, lr $2\mathrm{e}{-4}$, batch $2$, grad-accum $4$, epochs $1$, max-seq $2048$, 4-bit --- final values?
-  \item[E5.] Which models actually trained/reported (Qwen3.5-2B, Qwen3.5-0.8B, Gemma-4-E4B)?
+  \item[E5.] Which models actually trained/reported (\texttt{Qwen/Qwen3.5-2B}, \texttt{Qwen/Qwen3.5-0.8B}, \texttt{google/gemma-4-E4B})?
 \end{enumerate}
 
 \subsection*{F. Results (Sec.~5)}
@@ -261,7 +261,7 @@ Raw files contain silence, hold tones, background noise, and non-speech events, 
 
 We reviewed comparative VAD evidence on mixed-domain audio at 16\,kHz \cite{SileroVADQualityMetrics}. In that evaluation, \textbf{Silero v6} reports the best multi-domain ROC-AUC (\textbf{0.97}) and high chunk-level speech accuracy (\textbf{0.92}). Based on this quality evidence and deployment constraints, we adopted \textbf{Silero VAD} for this pipeline \cite{SileroVAD,SileroVADQualityMetrics}. We retain the speech intervals and drop the rest, removing long silent regions and background sound prior to ASR. Figure~\ref{fig:vad_before_after} shows an example call before and after VAD processing.
  
-\begin{figure}[hbt!]
+\begin{figure}[hbt!] 
   \centering
   \includegraphics[width=\linewidth]{images/before_after_process_vad.png}
   \caption{One call: stereo mix (left) and customer channel with VAD speech regions (right).}
@@ -299,7 +299,7 @@ In the final stage, reconstructed transcripts are formatted into a supervised fi
 For supervised fine-tuning, each transcript yields a single training row. Each row is a JSON object containing the \texttt{instruction} (the extraction prompt and schema), the \texttt{input} (the full call transcript), and the \texttt{response} (the exact JSON output with all six fields populated).
 
 \subsubsection{Model Architecture and Loss}
-Candidate model families for extraction include Qwen3.5, Gemma-4-E4B, and SmolLM3. All are decoder-only Transformer models \cite{vaswani2017attention} built on self-attention:
+Candidate model families for extraction include \texttt{Qwen/Qwen3.5-2B}, \texttt{Qwen/Qwen3.5-0.8B}, and \texttt{google/gemma-4-E4B}. All are decoder-only Transformer models \cite{vaswani2017attention} built on self-attention:
 \[
   \mathrm{Attention}(Q,K,V)=\mathrm{softmax}({QK^{\top}}/{\sqrt{d_k}})\,V,
 \]
