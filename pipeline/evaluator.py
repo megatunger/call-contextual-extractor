@@ -3,11 +3,15 @@ import json
 import time
 import argparse
 import hashlib
+from datetime import datetime, timezone
 import pandas as pd
 import difflib
 from pathlib import Path
 from datasets import load_dataset
 from unsloth import FastLanguageModel
+
+LIVE_RESULTS_CSV = "data/evaluation_results_live.csv"
+PROGRESS_JSON = "data/evaluation_progress.json"
 
 def parse_json(text):
     try:
@@ -36,10 +40,38 @@ def safe_mae(pred, target):
     except:
         return None
 
-def _checkpoint_path(checkpoint_dir: Path, model_path: str) -> Path:
+def _run_id(model_path: str) -> tuple[str, str]:
     key = hashlib.sha256(model_path.encode()).hexdigest()[:16]
     safe_name = "".join(c if c.isalnum() or c in "-_" else "_" for c in os.path.basename(model_path))
+    return safe_name, key
+
+def _checkpoint_path(checkpoint_dir: Path, model_path: str) -> Path:
+    safe_name, key = _run_id(model_path)
     return checkpoint_dir / f"{safe_name}_{key}.json"
+
+def _samples_path(checkpoint_dir: Path, model_path: str) -> Path:
+    safe_name, key = _run_id(model_path)
+    return checkpoint_dir / f"{safe_name}_{key}.samples.jsonl"
+
+def _append_jsonl(path: Path, row: dict) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("a", encoding="utf-8") as handle:
+        handle.write(json.dumps(row, ensure_ascii=False) + "\n")
+
+def _save_live_results(live_path: Path, completed: list[dict], current: dict | None) -> None:
+    rows = list(completed)
+    if current:
+        rows.append(current)
+    if not rows:
+        return
+    live_path.parent.mkdir(parents=True, exist_ok=True)
+    pd.DataFrame(rows).to_csv(live_path, index=False)
+
+def _save_progress(progress_path: Path, payload: dict) -> None:
+    progress_path.parent.mkdir(parents=True, exist_ok=True)
+    tmp = progress_path.with_suffix(".json.tmp")
+    tmp.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
+    tmp.replace(progress_path)
 
 def _load_checkpoint(path: Path, model_path: str, dataset_path: str, num_test: int) -> dict | None:
     if not path.is_file():
@@ -62,14 +94,109 @@ def _save_checkpoint(path: Path, state: dict) -> None:
     tmp.write_text(json.dumps(state, ensure_ascii=False, indent=2), encoding="utf-8")
     tmp.replace(path)
 
-def _format_eval_progress(model_label: str, done: int, total: int, elapsed_s: float) -> str:
+def _format_eval_progress(
+    model_label: str,
+    done: int,
+    total: int,
+    elapsed_s: float,
+    running: dict | None = None,
+) -> str:
     pct = (100.0 * done / total) if total else 0.0
     base = f"{model_label}: {done}/{total} ({pct:.1f}%)"
+    if running:
+        base += (
+            f" | JSON {running.get('Valid_JSON_%', 0)}%"
+            f" Busy {running.get('Busy_Accuracy_%', 0)}%"
+            f" Sector {running.get('Sector_Match_%', 0)}%"
+        )
     if done <= 0 or elapsed_s <= 0:
         return f"{base} | elapsed {elapsed_s:.0f}s"
     rate = done / elapsed_s
     eta_s = (total - done) / rate if rate > 0 else 0.0
     return f"{base} | elapsed {elapsed_s:.0f}s | ETA {eta_s:.0f}s"
+
+def _score_sample(pred_json: dict | None, ground_truth: dict | None) -> dict:
+    if ground_truth is None:
+        return {"valid_json": False, "skipped": True, "reason": "invalid_ground_truth"}
+    if pred_json is None:
+        return {
+            "valid_json": False,
+            "skipped": False,
+            "busy_match": False,
+            "sector_match": False,
+            "schedule_match": False,
+            "interested_abs_err": None,
+            "rating_abs_err": None,
+        }
+    scores = {
+        "valid_json": True,
+        "skipped": False,
+        "busy_match": pred_json.get("customer_busy") == ground_truth.get("customer_busy"),
+        "sector_match": soft_match(pred_json.get("customer_sector"), ground_truth.get("customer_sector")),
+        "schedule_match": soft_match(
+            pred_json.get("customer_scheduled_at"), ground_truth.get("customer_scheduled_at")
+        ),
+        "interested_abs_err": safe_mae(
+            pred_json.get("customer_interested"), ground_truth.get("customer_interested")
+        ),
+        "rating_abs_err": safe_mae(pred_json.get("customer_rating"), ground_truth.get("customer_rating")),
+    }
+    return scores
+
+def _apply_sample_scores(
+    scores: dict,
+    parse_success: int,
+    busy_match: int,
+    sector_match: int,
+    scheduled_match: int,
+    interested_diffs: list,
+    rating_diffs: list,
+) -> tuple[int, int, int, int, list, list]:
+    if not scores.get("valid_json"):
+        return parse_success, busy_match, sector_match, scheduled_match, interested_diffs, rating_diffs
+    parse_success += 1
+    if scores.get("busy_match"):
+        busy_match += 1
+    if scores.get("sector_match"):
+        sector_match += 1
+    if scores.get("schedule_match"):
+        scheduled_match += 1
+    if scores.get("interested_abs_err") is not None:
+        interested_diffs.append(scores["interested_abs_err"])
+    if scores.get("rating_abs_err") is not None:
+        rating_diffs.append(scores["rating_abs_err"])
+    return parse_success, busy_match, sector_match, scheduled_match, interested_diffs, rating_diffs
+
+def _running_metrics_row(
+    model_label: str,
+    variant: str,
+    model_path: str,
+    samples_done: int,
+    num_test: int,
+    parse_success: int,
+    busy_match: int,
+    sector_match: int,
+    scheduled_match: int,
+    interested_diffs: list,
+    rating_diffs: list,
+    status: str,
+) -> dict:
+    row = _metrics_from_counts(
+        model_label,
+        variant,
+        num_test,
+        parse_success,
+        busy_match,
+        sector_match,
+        scheduled_match,
+        interested_diffs,
+        rating_diffs,
+    )
+    row["Model_Path"] = model_path
+    row["Samples_Done"] = samples_done
+    row["Num_Test"] = num_test
+    row["Status"] = status
+    return row
 
 def _model_display_info(model_path: str) -> tuple[str, str]:
     name = os.path.basename(model_path.rstrip("/"))
@@ -122,11 +249,17 @@ def evaluate_models(
     dataset_path = os.path.abspath(dataset_path)
     ckpt_dir = Path(checkpoint_dir)
     print(f"Evaluating on {num_test} held-out test examples from {dataset_path}.")
+    live_path = Path(LIVE_RESULTS_CSV)
+    progress_path = Path(PROGRESS_JSON)
+
     if resume:
         print(f"Checkpoints: {ckpt_dir} (use --no-resume to start fresh)")
     else:
         print("Resume disabled; ignoring any saved checkpoints.")
-    
+    print(f"Live summary: {live_path}")
+    print(f"Per-sample logs: {ckpt_dir}/*.samples.jsonl")
+    print(f"Progress file: {progress_path}")
+
     results = []
     
     alpaca_prompt = """Below is an instruction that describes a task, paired with an input that provides further context. Write a response that appropriately completes the request.
@@ -160,8 +293,12 @@ def evaluate_models(
         model_label, variant = _model_display_info(model_path)
         progress_label = f"{model_label} ({variant})"
         ckpt_path = _checkpoint_path(ckpt_dir, model_path)
-        if not resume and ckpt_path.is_file():
-            ckpt_path.unlink()
+        samples_path = _samples_path(ckpt_dir, model_path)
+        if not resume:
+            if ckpt_path.is_file():
+                ckpt_path.unlink()
+            if samples_path.is_file():
+                samples_path.unlink()
 
         parse_success = 0
         busy_match = 0
@@ -194,13 +331,15 @@ def evaluate_models(
 
             done = i + 1
             elapsed = time.monotonic() - loop_start
-            print(_format_eval_progress(progress_label, done, num_test, elapsed), flush=True)
-            
+
             instruction = example["instruction"]
             input_text = example["input"]
             ground_truth_text = example["response"]
-            
+
             ground_truth = parse_json(ground_truth_text)
+            pred_text = None
+            pred_json = None
+
             if ground_truth is not None:
                 inputs = tokenizer([alpaca_prompt.format(instruction, input_text)], return_tensors="pt").to(model.device)
                 outputs = model.generate(**inputs, max_new_tokens=256, use_cache=True, pad_token_id=tokenizer.eos_token_id)
@@ -214,29 +353,52 @@ def evaluate_models(
 
                 pred_json = parse_json(pred_text)
 
-                if pred_json is not None:
-                    parse_success += 1
+            scores = _score_sample(pred_json, ground_truth)
+            (
+                parse_success,
+                busy_match,
+                sector_match,
+                scheduled_match,
+                interested_diffs,
+                rating_diffs,
+            ) = _apply_sample_scores(
+                scores,
+                parse_success,
+                busy_match,
+                sector_match,
+                scheduled_match,
+                interested_diffs,
+                rating_diffs,
+            )
 
-                    if pred_json.get("customer_busy") == ground_truth.get("customer_busy"):
-                        busy_match += 1
+            running = _running_metrics_row(
+                model_label,
+                variant,
+                model_path,
+                done,
+                num_test,
+                parse_success,
+                busy_match,
+                sector_match,
+                scheduled_match,
+                interested_diffs,
+                rating_diffs,
+                status="in_progress",
+            )
+            print(_format_eval_progress(progress_label, done, num_test, elapsed, running), flush=True)
 
-                    pred_sector = pred_json.get("customer_sector")
-                    gt_sector = ground_truth.get("customer_sector")
-                    if soft_match(pred_sector, gt_sector):
-                        sector_match += 1
-
-                    pred_sched = pred_json.get("customer_scheduled_at")
-                    gt_sched = ground_truth.get("customer_scheduled_at")
-                    if soft_match(pred_sched, gt_sched):
-                        scheduled_match += 1
-
-                    diff_int = safe_mae(pred_json.get("customer_interested"), ground_truth.get("customer_interested"))
-                    if diff_int is not None:
-                        interested_diffs.append(diff_int)
-
-                    diff_rat = safe_mae(pred_json.get("customer_rating"), ground_truth.get("customer_rating"))
-                    if diff_rat is not None:
-                        rating_diffs.append(diff_rat)
+            sample_record = {
+                "index": i,
+                "model": model_label,
+                "variant": variant,
+                "model_path": model_path,
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "scores": scores,
+                "prediction": pred_json,
+                "prediction_text": pred_text,
+                "ground_truth": ground_truth,
+            }
+            _append_jsonl(samples_path, sample_record)
 
             _save_checkpoint(
                 ckpt_path,
@@ -251,9 +413,29 @@ def evaluate_models(
                     "scheduled_match": scheduled_match,
                     "interested_diffs": interested_diffs,
                     "rating_diffs": rating_diffs,
+                    "samples_path": str(samples_path),
                 },
             )
-                    
+
+            _save_live_results(live_path, results, running)
+            _save_progress(
+                progress_path,
+                {
+                    "updated_at": datetime.now(timezone.utc).isoformat(),
+                    "dataset_path": dataset_path,
+                    "current_model_path": model_path,
+                    "current_model": model_label,
+                    "current_variant": variant,
+                    "sample_index": i,
+                    "samples_done": done,
+                    "num_test": num_test,
+                    "running_metrics": running,
+                    "completed_models": results,
+                    "samples_log": str(samples_path),
+                    "live_results_csv": str(live_path),
+                },
+            )
+
         print()
         if ckpt_path.is_file():
             ckpt_path.unlink()
@@ -270,21 +452,46 @@ def evaluate_models(
             rating_diffs,
         )
         
-        print(f"Results for {metrics['Model']}:")
+        metrics["Model_Path"] = model_path
+        metrics["Samples_Done"] = num_test
+        metrics["Num_Test"] = num_test
+        metrics["Status"] = "complete"
+        metrics["Samples_Log"] = str(samples_path)
+
+        print(f"Results for {metrics['Model']} ({variant}):")
         print(metrics)
         results.append(metrics)
-        
+
+        _save_live_results(live_path, results, current=None)
+        _save_progress(
+            progress_path,
+            {
+                "updated_at": datetime.now(timezone.utc).isoformat(),
+                "dataset_path": dataset_path,
+                "current_model_path": None,
+                "samples_done": num_test,
+                "num_test": num_test,
+                "completed_models": results,
+                "live_results_csv": str(live_path),
+            },
+        )
+
         # Free memory before loading next model
         import torch
         del model, tokenizer
         torch.cuda.empty_cache()
         
     if results:
-        # Save results
         os.makedirs("data", exist_ok=True)
         df = pd.DataFrame(results)
-        df.to_csv("data/evaluation_results.csv", index=False)
-        print("\nEvaluation complete! Results saved to data/evaluation_results.csv")
+        final_cols = [c for c in df.columns if c not in ("Status", "Samples_Log")]
+        df[final_cols].to_csv("data/evaluation_results.csv", index=False)
+        df.to_csv(LIVE_RESULTS_CSV, index=False)
+        print("\nEvaluation complete!")
+        print("  Final metrics: data/evaluation_results.csv")
+        print(f"  Live summary: {LIVE_RESULTS_CSV}")
+        print(f"  Per-sample logs: {ckpt_dir}/*.samples.jsonl")
+        print(f"  Progress: {PROGRESS_JSON}")
     else:
         print("\nNo models were successfully evaluated.")
 
