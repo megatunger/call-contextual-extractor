@@ -36,6 +36,7 @@
 \documentclass[unnumsec,webpdf,modern,large]{oup-authoring-template}%
 %\onecolumn % for one column layouts
 \usepackage{tikz}
+\usepackage{booktabs}
 \usetikzlibrary{shapes.geometric, arrows.meta, positioning}
 
 %\usepackage{showframe}
@@ -86,7 +87,7 @@
 
 %\editor{Associate Editor: Name}
 
-\abstract{Sales agents on our CRM platform (uCall) currently fill in customer fields by hand after every call. This project presents a three-stage pipeline to automate that process: (1) Silero VAD removes silence and noise from the raw audio, (2) a wav2vec\,2.0 model transcribes the remaining speech in Vietnamese, and (3) a LoRA-fine-tuned LLM extracts structured CRM fields from the transcript. The full staging export comprises 13{,}232 manual sales calls; all reported VAD, ASR, fine-tuning, and extraction results use a subset of 600 calls, with an 80/20 train--test split for the extraction stage. Evaluation uses Word Error Rate for ASR and field-level metrics on the held-out test set (JSON validity and agreement with teacher labels).} 
+\abstract{Sales agents on our CRM platform (uCall) currently fill in customer fields by hand after every call. This project presents a three-stage pipeline to automate that process: (1) Silero VAD removes silence and noise from the raw audio, (2) a wav2vec\,2.0 model transcribes the remaining speech in Vietnamese, and (3) a LoRA-fine-tuned LLM extracts structured CRM fields from the transcript. The full staging export comprises 13{,}232 manual sales calls; all reported VAD, ASR, fine-tuning, and extraction results use a subset of 550 calls, with an 80/20 train--test split (440 train, 110 test) for the extraction stage. Evaluation uses Word Error Rate for ASR and field-level metrics on the held-out test set (JSON validity and agreement with teacher labels).} 
 
 \keywords{keyword1, keyword2, keyword3, keyword4}
 
@@ -119,7 +120,7 @@ Decisions to lock before drafting, so every section of the report (Introduction 
 \begin{enumerate}
   \item[A1.] Project title / one-line problem statement --- final wording?
   \item[A2.] Product name spelling and casing (``uCall'') used everywhere?
-  \item[A3.] Corpus numbers: full $=13{,}232$; used $=600$; split $=480$ train $/$ $120$ test --- frozen for all sections?
+  \item[A3.] Corpus numbers: full $=13{,}232$; used $=550$; split $=440$ train $/$ $110$ test --- frozen for all sections?
   \item[A4.] Canonical stage names: ``VAD'', ``ASR'', ``Contextual Extraction'' --- fixed labels and order?
   \item[A5.] CRM field list + types (\texttt{customer\_sector}, \texttt{customer\_needs}, \texttt{customer\_interested} 1--10, \texttt{customer\_busy} bool, \texttt{customer\_scheduled\_at} date$|$null, \texttt{customer\_rating}) --- final schema?
   \item[A6.] Terminology: ``teacher / student'', ``LoRA'', ``fine-tune'' vs ``distill'' --- pick one vocabulary.
@@ -255,11 +256,11 @@ The goal of this work is to automatically extract customer information from call
   \label{fig:pipeline}
 \end{figure}
 
-\subsection{Stage 1: Voice Activity Detection (VAD)}
+\subsection{Stage 1: Voice Activity Detection (VAD)} 
 Raw files contain silence, hold tones, background noise, and non-speech events, which increase speech recognition errors. Preprocessing limits those segments. Recordings are stereo, with the agent on the left channel and the customer on the right. Since downstream analysis targets the customer, we isolate the right channel before VAD. 
 
 We reviewed comparative VAD evidence on mixed-domain audio at 16\,kHz \cite{SileroVADQualityMetrics}. In that evaluation, \textbf{Silero v6} reports the best multi-domain ROC-AUC (\textbf{0.97}) and high chunk-level speech accuracy (\textbf{0.92}). Based on this quality evidence and deployment constraints, we adopted \textbf{Silero VAD} for this pipeline \cite{SileroVAD,SileroVADQualityMetrics}. We retain the speech intervals and drop the rest, removing long silent regions and background sound prior to ASR. Figure~\ref{fig:vad_before_after} shows an example call before and after VAD processing.
-
+ 
 \begin{figure}[hbt!]
   \centering
   \includegraphics[width=\linewidth]{images/before_after_process_vad.png}
@@ -281,7 +282,7 @@ In the final stage, reconstructed transcripts are formatted into a supervised fi
   \centering
   \caption{CRM JSON Field Schema Extracted by the LLM}
   \label{tab:crm_fields}
-  \begin{tabular}{p{0.35\linewidth} p{0.15\linewidth} p{0.4\linewidth}}
+  \begin{tabular}{p{0.35\linewidth} p{0.2\linewidth} p{0.4\linewidth}}
     \toprule
     \textbf{Field Name} & \textbf{Data Type} & \textbf{Description} \\
     \midrule
@@ -315,7 +316,7 @@ where $\mathcal{R}$ is the set of response-token positions. Minimising this loss
 \label{sec:experimental-setup}
 
 \subsection{Data}
-The dataset is extracted from the internal staging database of our organization, consisting of real manual sales calls made through the CRM system. We selected calls with a duration greater than 5 seconds to exclude empty or dropped connections. The full export contains 13,232 stereo audio records. For the purposes of evaluating the extraction pipeline in this project, a subset of 600 calls is used, partitioned into an 80/20 train-test split for supervised fine-tuning.
+The dataset is extracted from the internal staging database of our organization, consisting of real manual sales calls made through the CRM system. We selected calls with a duration greater than 5 seconds to exclude empty or dropped connections. The full export contains 13,232 stereo audio records. For the purposes of evaluating the extraction pipeline in this project, a subset of 550 calls is used, partitioned into an 80/20 train-test split (440 train, 110 test) for supervised fine-tuning.
 
 \subsection{Hardware and Software}
 

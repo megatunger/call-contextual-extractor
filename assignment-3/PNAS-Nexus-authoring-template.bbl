@@ -1,0 +1,68 @@
+\begin{thebibliography}{10}
+
+\bibitem{baevski2020wav2vec2}
+Alexei Baevski, Yuhao Zhou, Abdelrahman Mohamed, and Michael Auli.
+\newblock wav2vec 2.0: A framework for self-supervised learning of speech
+  representations.
+\newblock {\em Advances in Neural Information Processing Systems},
+  33:12449--12460, 2020.
+
+\bibitem{nguyenvulebinh_wav2vec2_base_vi}
+Nguyen Vu~Le Binh.
+\newblock wav2vec2-base-vi.
+\newblock \url{https://huggingface.co/nguyenvulebinh/wav2vec2-base-vi}, 2022.
+\newblock Vietnamese self-supervised pre-trained wav2vec2.
+
+\bibitem{hu2022lora}
+Edward~J. Hu, Yelong Shen, Phillip Wallis, Zeyuan Allen-Zhu, Yuanzhi Li, Shean
+  Wang, Lu~Wang, and Weizhu Chen.
+\newblock Lora: Low-rank adaptation of large language models, 2021.
+
+\bibitem{whisper_repo}
+{OpenAI}.
+\newblock Whisper: Robust speech recognition via large-scale weak supervision.
+\newblock \url{https://github.com/openai/whisper}, 2025.
+\newblock GitHub repository.
+
+\bibitem{zipformer_hf}
+{Qualcomm}.
+\newblock Zipformer.
+\newblock \url{https://huggingface.co/qualcomm/Zipformer}, 2025.
+\newblock Model card and deployment assets.
+
+\bibitem{SileroVAD}
+{Silero Team}.
+\newblock Silero vad: pre-trained enterprise-grade voice activity detector
+  (vad), number detector and language classifier.
+\newblock \url{https://github.com/snakers4/silero-vad}, 2024.
+\newblock GitHub repository.
+
+\bibitem{SileroVADQualityMetrics}
+{Silero Team}.
+\newblock Silero vad quality metrics.
+\newblock \url{https://github.com/snakers4/silero-vad/wiki/Quality-Metrics},
+  2026.
+\newblock Includes multi-domain ROC-AUC, accuracy tables, and model-author
+  comparison notes.
+
+\bibitem{vaswani2017attention}
+Ashish Vaswani, Noam Shazeer, Niki Parmar, Jakob Uszkoreit, Llion Jones,
+  Aidan~N. Gomez, {\L}ukasz Kaiser, and Illia Polosukhin.
+\newblock Attention is all you need.
+\newblock In {\em Advances in Neural Information Processing Systems},
+  volume~30, 2017.
+
+\bibitem{wei2023zero_shot_ie}
+Xiang Wei, Xingyu Cui, Ning Cheng, Xiaobin Wang, Xin Zhang, Shen Huang, Pengjun
+  Xie, Jinan Xu, Yufeng Chen, Meishan Zhang, Yong Jiang, and Wenjuan Han.
+\newblock Zero-shot information extraction via chatting with {ChatGPT}.
+\newblock {\em arXiv preprint arXiv:2302.10205}, 2023.
+
+\bibitem{zipformer_paper}
+Zengwei Yao, Liyong Guo, Xiaoyu Yang, Wei Kang, Fangjun Kuang, Yifan Yang,
+  Zengrui Jin, Long Lin, and Daniel Povey.
+\newblock Zipformer: A faster and better encoder for automatic speech
+  recognition.
+\newblock {\em arXiv preprint arXiv:2310.11230}, 2024.
+
+\end{thebibliography}

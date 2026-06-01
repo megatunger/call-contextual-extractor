@@ -1,14 +1,14 @@
 # Fdb version 4
-["bibtex PNAS-Nexus-authoring-template"] 1780244196.51126 "PNAS-Nexus-authoring-template.aux" "PNAS-Nexus-authoring-template.bbl" "PNAS-Nexus-authoring-template" 1780244196.6766 2
+["bibtex PNAS-Nexus-authoring-template"] 1780244342.44326 "PNAS-Nexus-authoring-template.aux" "PNAS-Nexus-authoring-template.bbl" "PNAS-Nexus-authoring-template" 1780244880.90876 0
   "./oup-plain.bst" 1779978140.28098 20621 ea74bec9816e8a20db0cfd17a7f1ea12 ""
   "./reference.bib" 1780240916.30945 4605 505384beca517ea935e16212e553d07f ""
-  "PNAS-Nexus-authoring-template.aux" 1780244188.50927 32 3985256e7290058c681f74d7a3565a19 "pdflatex"
+  "PNAS-Nexus-authoring-template.aux" 1780244880.6017 5665 b026a7e2f9433a112514cdc1758b725b "pdflatex"
   (generated)
   "PNAS-Nexus-authoring-template.bbl"
   "PNAS-Nexus-authoring-template.blg"
   (rewritten before read)
-["pdflatex"] 1780244195.25094 "/Users/megatunger/Github/call-contextual-extractor/assignment-3/PNAS-Nexus-authoring-template.tex" "PNAS-Nexus-authoring-template.pdf" "PNAS-Nexus-authoring-template" 1780244196.31258 2
-  "/Users/megatunger/Github/call-contextual-extractor/assignment-3/PNAS-Nexus-authoring-template.tex" 1780244194.97657 20272 74f2f5ff50f7105828b96468d877c386 ""
+["pdflatex"] 1780244879.5561 "/Users/megatunger/Github/call-contextual-extractor/assignment-3/PNAS-Nexus-authoring-template.tex" "PNAS-Nexus-authoring-template.pdf" "PNAS-Nexus-authoring-template" 1780244880.90889 0
+  "/Users/megatunger/Github/call-contextual-extractor/assignment-3/PNAS-Nexus-authoring-template.tex" 1780244879.35423 20339 1c3e0c3fd30687a83f1d6d1c11a4d624 ""
   "/usr/local/texlive/2026/texmf-dist/fonts/map/fontname/texfonts.map" 1577235249 3524 cb3e574dea2d1052e39280babc910dc8 ""
   "/usr/local/texlive/2026/texmf-dist/fonts/tfm/public/amsfonts/cmextra/cmex7.tfm" 1246382020 1004 54797486969f23fa377b128694d548df ""
   "/usr/local/texlive/2026/texmf-dist/fonts/tfm/public/amsfonts/cmextra/cmex8.tfm" 1246382020 988 bdf658c3bfc2d96d3c8b02cfc1c94c20 ""
@@ -19,7 +19,6 @@
   "/usr/local/texlive/2026/texmf-dist/fonts/tfm/public/amsfonts/symbols/msbm10.tfm" 1246382020 908 2921f8a10601f252058503cc6570e581 ""
   "/usr/local/texlive/2026/texmf-dist/fonts/tfm/public/amsfonts/symbols/msbm5.tfm" 1246382020 940 75ac932a52f80982a9f8ea75d03a34cf ""
   "/usr/local/texlive/2026/texmf-dist/fonts/tfm/public/amsfonts/symbols/msbm7.tfm" 1246382020 940 228d6584342e91276bf566bcf9716b83 ""
-  "/usr/local/texlive/2026/texmf-dist/fonts/tfm/public/cm/cmbx9.tfm" 1136768653 1328 5442e22a7072966dbaf88ca900acf3f0 ""
   "/usr/local/texlive/2026/texmf-dist/fonts/tfm/public/cm/cmex10.tfm" 1136768653 992 662f679a0b3d2d53c1b94050fdaa3f50 ""
   "/usr/local/texlive/2026/texmf-dist/fonts/tfm/public/cm/cmmi10.tfm" 1136768653 1528 abec98dbc43e172678c11b3b9031252a ""
   "/usr/local/texlive/2026/texmf-dist/fonts/tfm/public/cm/cmmi5.tfm" 1136768653 1508 3b32edd0d68f6498a5a375e78f9edc5e ""
@@ -50,7 +49,6 @@
   "/usr/local/texlive/2026/texmf-dist/fonts/tfm/public/rsfs/rsfs10.tfm" 1229303445 688 37338d6ab346c2f1466b29e195316aa4 ""
   "/usr/local/texlive/2026/texmf-dist/fonts/tfm/public/rsfs/rsfs5.tfm" 1229303445 684 3a51bd4fd9600428d5264cf25f04bb9a ""
   "/usr/local/texlive/2026/texmf-dist/fonts/tfm/public/rsfs/rsfs7.tfm" 1229303445 692 1b6510779f0f05e9cbf03e0f6c8361e6 ""
-  "/usr/local/texlive/2026/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx9.pfb" 1248133631 32298 c6d25bb16d1eac01ebdc6d7084126a1e ""
   "/usr/local/texlive/2026/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi6.pfb" 1248133631 37166 8ab3487cbe3ab49ebce74c29ea2418db ""
   "/usr/local/texlive/2026/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi9.pfb" 1248133631 36094 798f80770b3b148ceedd006d487db67c ""
   "/usr/local/texlive/2026/texmf-dist/fonts/type1/public/amsfonts/cm/cmr9.pfb" 1248133631 33993 9b89b85fd2d9df0482bd47194d1d3bf3 ""
@@ -158,6 +156,7 @@
   "/usr/local/texlive/2026/texmf-dist/tex/latex/base/fix-cm.sty" 1738182759 14741 6ad9efc94c78efc56749b0f059d15546 ""
   "/usr/local/texlive/2026/texmf-dist/tex/latex/base/ifthen.sty" 1748806692 5525 1593ca62a2554dd7423fc8a4e5a82125 ""
   "/usr/local/texlive/2026/texmf-dist/tex/latex/base/ts1enc.def" 1738182759 8090 bcb38b4f148e75e16d2c33225dbca53b ""
+  "/usr/local/texlive/2026/texmf-dist/tex/latex/booktabs/booktabs.sty" 1579038678 6078 f1cb470c9199e7110a27851508ed7a5c ""
   "/usr/local/texlive/2026/texmf-dist/tex/latex/caption/caption.sty" 1696191071 56128 c2ccf1a29d78c33bc553880402e4fb9a ""
   "/usr/local/texlive/2026/texmf-dist/tex/latex/caption/caption3.sty" 1696191071 72619 ee90b6612147680fd73c3b1406a74245 ""
   "/usr/local/texlive/2026/texmf-dist/tex/latex/changepage/chngpage.sty" 1256071977 4325 1a4bfd40b7e0a7ed0d541fef6c68f28d ""
@@ -221,10 +220,10 @@
   "/usr/local/texlive/2026/texmf-var/fonts/map/pdftex/updmap/pdftex.map" 1773203178 5541377 04880c840ca220163a28f1a3af0ee662 ""
   "/usr/local/texlive/2026/texmf-var/web2c/pdftex/pdflatex.fmt" 1773203121 3636768 c366a1d15fd02eee874f45e688db42e0 ""
   "/usr/local/texlive/2026/texmf.cnf" 1772409725 577 648cd9f92f9c0eac486f4c71c85cfbbe ""
-  "PNAS-Nexus-authoring-template.aux" 1780244188.50927 32 3985256e7290058c681f74d7a3565a19 "pdflatex"
-  "PNAS-Nexus-authoring-template.bbl" 1780244196.67147 0 d41d8cd98f00b204e9800998ecf8427e "bibtex PNAS-Nexus-authoring-template"
-  "PNAS-Nexus-authoring-template.out" 0 -1 0 "pdflatex"
-  "PNAS-Nexus-authoring-template.tex" 1780244194.97657 20272 74f2f5ff50f7105828b96468d877c386 ""
+  "PNAS-Nexus-authoring-template.aux" 1780244880.6017 5665 b026a7e2f9433a112514cdc1758b725b "pdflatex"
+  "PNAS-Nexus-authoring-template.bbl" 1780244342.53527 2535 2763340c96679b76366c17f3a87885e8 "bibtex PNAS-Nexus-authoring-template"
+  "PNAS-Nexus-authoring-template.out" 1780244880.60249 3074 dec5c1ef00754db0f9ab19572b15782a "pdflatex"
+  "PNAS-Nexus-authoring-template.tex" 1780244879.35423 20339 1c3e0c3fd30687a83f1d6d1c11a4d624 ""
   "images/before_after_process_vad.png" 1780243625.42181 57686 08df3240859429cdf5b621768cb382dc ""
   "oup-authoring-template.cls" 1779978147.03202 145972 5195a4b3aae351606037cd91b0f6597b ""
   (generated)
