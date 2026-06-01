@@ -289,6 +289,9 @@ def evaluate_models(
         print("\nNo models were successfully evaluated.")
 
 if __name__ == "__main__":
+    # Allow `python pipeline/evaluator.py` from any cwd (e.g. subprocess / notebooks)
+    os.chdir(Path(__file__).resolve().parent.parent)
+
     parser = argparse.ArgumentParser(description="Evaluate multiple fine-tuned models")
     parser.add_argument("--models", nargs="+", default=[
         "data/models/Qwen3.5-2B_lora", 
