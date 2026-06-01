@@ -37,6 +37,8 @@
 %\onecolumn % for one column layouts
 \usepackage{tikz}
 \usepackage{booktabs}
+\usepackage[T1,T5]{fontenc}
+\usepackage[utf8]{inputenc}
 \usetikzlibrary{shapes.geometric, arrows.meta, positioning}
 
 %\usepackage{showframe}
@@ -87,7 +89,7 @@
 
 %\editor{Associate Editor: Name}
 
-\abstract{Sales agents on our CRM platform (uCall) currently fill in customer fields by hand after every call. This project presents a three-stage pipeline to automate that process: (1) Silero VAD removes silence and noise from the raw audio, (2) a wav2vec\,2.0 model transcribes the remaining speech in Vietnamese, and (3) a LoRA-fine-tuned LLM extracts structured CRM fields from the transcript. The full staging export comprises 13{,}232 manual sales calls; all reported VAD, ASR, fine-tuning, and extraction results use a subset of 550 calls, with an 80/20 train--test split (440 train, 110 test) for the extraction stage. Evaluation uses Word Error Rate for ASR and field-level metrics on the held-out test set (JSON validity and agreement with teacher labels).} 
+\abstract{Sales agents on our CRM platform (uCall) currently fill in customer fields by hand after every call. This project presents a three-stage pipeline to automate that process: (1) Silero VAD removes silence and noise from the raw audio, (2) a wav2vec\,2.0 model transcribes the remaining speech in Vietnamese, and (3) a LoRA-fine-tuned LLM extracts structured CRM fields from the transcript. The full staging export comprises 13{,}232 manual sales calls. An initial evaluation subset of 600 calls was selected; after dropping 50 broken records that failed to yield transcripts, the final dataset comprises 550 calls. This dataset uses an 80/20 train--test split (440 train, 110 test) for the extraction stage. Evaluation uses Word Error Rate for ASR and field-level metrics on the held-out test set (JSON validity and agreement with teacher labels).} 
 
 \keywords{keyword1, keyword2, keyword3, keyword4}
 
@@ -120,7 +122,7 @@ Decisions to lock before drafting, so every section of the report (Introduction 
 \begin{enumerate}
   \item[A1.] Project title / one-line problem statement --- final wording?
   \item[A2.] Product name spelling and casing (``uCall'') used everywhere?
-  \item[A3.] Corpus numbers: full $=13{,}232$; used $=550$; split $=440$ train $/$ $110$ test --- frozen for all sections?
+  \item[A3.] Corpus numbers: full $=13{,}232$; initial $=600$; dropped $=50$; used $=550$; split $=440$ train $/$ $110$ test --- frozen for all sections?
   \item[A4.] Canonical stage names: ``VAD'', ``ASR'', ``Contextual Extraction'' --- fixed labels and order?
   \item[A5.] CRM field list + types (\texttt{customer\_sector}, \texttt{customer\_needs}, \texttt{customer\_interested} 1--10, \texttt{customer\_busy} bool, \texttt{customer\_scheduled\_at} date$|$null, \texttt{customer\_rating}) --- final schema?
   \item[A6.] Terminology: ``teacher / student'', ``LoRA'', ``fine-tune'' vs ``distill'' --- pick one vocabulary.
@@ -154,8 +156,8 @@ Decisions to lock before drafting, so every section of the report (Introduction 
   \item[E1.] Data subsection: SQL filter, duration rule, dedup, language --- what to disclose?
   \item[E2.] Train/val/test --- do we add a validation set or keep train/test only? Justify.
   \item[E3.] Hardware/software: exact GPU (Colab T4/A100?), PyTorch + Unsloth + bitsandbytes versions?
-  \item[E4.] Hyperparameter table contents: $r{=}16$, $\alpha{=}16$, dropout $0$, lr $2\mathrm{e}{-4}$, batch $2$, grad-accum $4$, epochs $1$, max-seq $2048$, 4-bit --- final values?
-  \item[E5.] Which models actually trained/reported (\texttt{Qwen/Qwen3.5-2B}, \texttt{Qwen/Qwen3.5-0.8B}, \texttt{google/gemma-4-E4B})?
+  \item[E4.] Hyperparameter table contents: $r{=}16$, $\alpha{=}16$, dropout $0$, lr $2\mathrm{e}{-4}$, batch $2$, grad-accum $4$, epochs $1$, max-seq $2048$, 4-bit --- added table.
+  \item[E5.] Which models actually trained/reported (\texttt{Qwen/Qwen3.5-2B}, \texttt{Qwen/Qwen3.5-0.8B}, \texttt{google/gemma-4-E4B} [failed at training])?
 \end{enumerate}
 
 \subsection*{F. Results (Sec.~5)}
@@ -206,7 +208,7 @@ Decisions to lock before drafting, so every section of the report (Introduction 
 Sales agents on the uCall platform currently fill in customer data fields by hand after every call. This manual process takes too much time and causes errors. We are building an automated system to extract structured CRM fields directly from raw audio calls.
 
 \subsection{Motivation}
-Manual data entry costs businesses time and money. Large language models can extract this data but they are often too big and expensive to run. This project shows how to combine audio processing tools with a small local language model. We use a fine tuning method called LoRA to accurately extract data using standard hardware. This is important because it proves that companies do not need huge external models to automate their data tasks.
+Manual data entry costs businesses time and money. Large language models can extract this data but they are often too big and expensive to run. This project shows how to combine audio processing tools with a small local language model. We use a fine tuning method called LoRA to accurately extract data using standard hardware. \textbf{This is important because it proves that companies do not need huge external models to automate their data tasks.}
 
 \subsection{Contributions}
 \begin{itemize}
@@ -294,12 +296,41 @@ In the final stage, reconstructed transcripts are formatted into a supervised fi
     \texttt{customer\_rating} & Number$|$Null & Optional 1--10 rating, if available \\
     \bottomrule
   \end{tabular}
-\end{table}
+\end{table}  
+ 
+Of the initial 600 selected calls, 50 records were dropped because they failed to generate a transcript during the ASR stage. The remaining dataset is compiled into 550 rows of JSON-formatted training examples for supervised fine-tuning. Each row contains the \texttt{instruction} (the extraction prompt and schema), the \texttt{input} (the full call transcript), and the \texttt{response} (the exact JSON output with all six fields populated). A representative training example is shown below (the transcript and response are formatted for readability):
 
-For supervised fine-tuning, each transcript yields a single training row. Each row is a JSON object containing the \texttt{instruction} (the extraction prompt and schema), the \texttt{input} (the full call transcript), and the \texttt{response} (the exact JSON output with all six fields populated).
+\begin{verbatim} 
+{
+  "call_id": "03bc8c4e...",
+  "instruction": "You are a structured-field 
+extractor for telesales CRM QA. Read the  
+following transcript and extract the  
+customer information.  
+Output valid JSON matching this schema exactly: 
+{
+  \"customer_sector\": \"string\",
+  \"customer_needs\": \"string\",
+  \"customer_interested\": \"number (1-10)\",
+  \"customer_busy\": \"boolean\",
+  \"customer_scheduled_at\": \"string or null\",
+  \"customer_rating\": \"number (1-10)\"
+}
+Return only JSON. Do not include markdown.",
+  "input": "[Full Vietnamese call transcript...]",
+  "response": "[Extracted values matching schema]"
+}
+\end{verbatim}
 
 \subsubsection{Model Architecture and Loss}
-Candidate model families for extraction include \texttt{Qwen/Qwen3.5-2B}, \texttt{Qwen/Qwen3.5-0.8B}, and \texttt{google/gemma-4-E4B}. All are decoder-only Transformer models \cite{vaswani2017attention} built on self-attention:
+Candidate model families for extraction initially included:
+\begin{itemize}
+    \item \texttt{Qwen/Qwen3.5-2B}: Evaluated successfully.
+    \item \texttt{Qwen/Qwen3.5-0.8B}: Evaluated successfully.
+    \item \texttt{google/gemma-4-E4B}: Excluded from final evaluation (failed during training). 
+\end{itemize}
+
+All are decoder-only Transformer models \cite{vaswani2017attention} built on self-attention:
 \[
   \mathrm{Attention}(Q,K,V)=\mathrm{softmax}({QK^{\top}}/{\sqrt{d_k}})\,V,
 \]
@@ -316,15 +347,86 @@ where $\mathcal{R}$ is the set of response-token positions. Minimising this loss
 \label{sec:experimental-setup}
 
 \subsection{Data}
-The dataset is extracted from the internal staging database of our organization, consisting of real manual sales calls made through the CRM system. We selected calls with a duration greater than 5 seconds to exclude empty or dropped connections. The full export contains 13,232 stereo audio records. For the purposes of evaluating the extraction pipeline in this project, a subset of 550 calls is used, partitioned into an 80/20 train-test split (440 train, 110 test) for supervised fine-tuning.
+The dataset is extracted from the internal staging database of our organization, consisting of real manual sales calls made through the CRM system. We selected calls with a duration greater than 5 seconds to exclude empty or dropped connections. The full export contains 13,232 stereo audio records. For the purposes of evaluating the extraction pipeline in this project, an initial subset of 600 calls was selected. During processing, 50 records were dropped due to being broken (failing to yield a transcript), resulting in a final curated dataset of 550 calls. This dataset is partitioned into an 80/20 train-test split (440 train, 110 test) for supervised fine-tuning.
+
+\begin{figure}[ht]
+\centering
+\begin{tikzpicture}[
+  box/.style={draw, rectangle, rounded corners, minimum width=3.8cm, minimum height=0.6cm, align=center, font=\small},
+  smallbox/.style={draw, rectangle, rounded corners, minimum width=1.6cm, minimum height=0.6cm, align=center, font=\small},
+  arrow/.style={thick,->,>=stealth}
+]
+  \node (full) [box] {Full Export\\(13,232 calls = 32.88\,GB)};
+  \node (subset) [box, below=0.6cm of full] {Initial Subset\\(600 calls)};
+  \node (dropped) [box, right=0.3cm of subset, dashed, text width=2cm, font=\footnotesize] {Dropped\\(No Transcript)\\{-50 calls}};
+  \node (final) [box, below=0.6cm of subset] {Curated Dataset\\(550 calls)};
+  \node (train) [smallbox, below left=0.6cm and -1.8cm of final] {Train Set\\(440 calls)};
+  \node (test) [smallbox, below right=0.6cm and -1.8cm of final] {Test Set\\(110 calls)};
+
+  \draw [arrow] (full) -- node[right, font=\footnotesize] {$> 5$s Filter} (subset);
+  \draw [arrow] (subset) -- (dropped);
+  \draw [arrow] (subset) -- (final);
+  \draw [arrow] (final.south) -- ++(0,-0.3) -| (train.north);
+  \draw [arrow] (final.south) -- ++(0,-0.3) -| (test.north);
+\end{tikzpicture}
+\caption{Dataset curation and train-test splitting process.}
+\label{fig:dataset_flow}
+\end{figure}
 
 \subsection{Hardware and Software}
+The pipeline is executed across two distinct environments to balance local prototyping and accelerated training:
+\begin{itemize}
+    \item \textbf{Local Preprocessing (Apple MacBook M4):} Used for the initial data preparation stages, including stereo audio isolation, Voice Activity Detection using Silero VAD (v6.2.1), and assembling the final JSON training dataset.
+    \item \textbf{Cloud Training (Google Colab T4):} The computationally intensive supervised fine-tuning (Stage 3) is conducted in the cloud using an NVIDIA T4 GPU (16\,GB VRAM). 
+    \item \textbf{Software Stack:} The environment is managed via Conda on Python 3.11.15. Key libraries include PyTorch (v2.11.0) for tensor operations, the Hugging Face \texttt{transformers} library (v5.5.0) for model architectures, and Unsloth for LoRA training.
+\end{itemize}
 
 \subsection{Hyperparameters}
+To ensure reproducibility, the hyperparameter configuration used for the supervised fine-tuning of the Qwen models is provided in Table \ref{tab:hyperparameters}. We utilized 4-bit quantization alongside Low-Rank Adaptation (LoRA) \cite{hu2022lora} to optimize memory efficiency and fit the training workload within the 16\,GB limit of the T4 GPU.
+
+\begin{table}[h]
+\centering
+\caption{Model Fine-Tuning Hyperparameters}
+\begin{tabular}{@{}ll@{}}
+\toprule
+\textbf{Hyperparameter} & \textbf{Value} \\
+\midrule
+LoRA Rank ($r$) & 16 \\
+LoRA Alpha ($\alpha$) & 16 \\
+LoRA Dropout & 0 \\
+Learning Rate & $2 \times 10^{-4}$ \\
+Per-Device Batch Size & 2 \\
+Gradient Accumulation Steps & 4 \\
+Effective Batch Size & 8 \\
+Epochs & 1 \\
+Max Sequence Length & 2048 tokens \\
+Quantization & 4-bit (NF4) \\
+\bottomrule
+\end{tabular}
+\label{tab:hyperparameters}
+\end{table}
+
+These specific hyperparameters were chosen to balance model performance against strict hardware limitations and data constraints:
+\begin{itemize}
+    \item \textbf{Epochs ($1$):} Given the relatively small size of the curated dataset (440 training records), limiting training to a single epoch helps prevent the model from catastrophically overfitting and memorizing the training transcripts.
+    \item \textbf{Batch Size ($2$) \& Gradient Accumulation ($4$):} A small per-device batch size was strictly necessary to avoid Out-Of-Memory (OOM) errors on the 16\,GB T4 GPU. Gradient accumulation is used to simulate a larger effective batch size of 8, which stabilizes the training gradients.
+    \item \textbf{LoRA Rank ($r{=}16$):} A rank of 16 provides an optimal trade-off between expressivity and memory overhead. It introduces enough trainable parameters to help the model learn the complex JSON extraction schema without inflating VRAM usage.
+\end{itemize}
 
 \section{Results}
 \label{sec:results}
 
+\subsection{Training Convergence}
+Figure \ref{fig:training_loss} illustrates the training loss for both the Qwen3.5-0.8B and Qwen3.5-2B models across the 55 training steps. Both models demonstrate clear convergence, rapidly adapting to the JSON schema format and stabilizing towards the end of the single epoch. 
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.8\linewidth]{images/training_loss.png}
+    \caption{Training loss curves for Qwen3.5-0.8B and Qwen3.5-2B over one epoch (55 steps) of LoRA fine-tuning.}
+    \label{fig:training_loss}
+\end{figure}
+
+\subsection{Extraction Performance}
 Evaluation uses deterministic substring/soft-matching for semantic fields (\texttt{customer\_sector} and \texttt{customer\_scheduled\_at}) to handle terminology differences. Numerical variables are evaluated with both Mean Squared Error (MSE) to penalize large deviations and a $\pm 1$ accuracy tolerance to account for subjective human scaling.
 
 \section{Discussion}

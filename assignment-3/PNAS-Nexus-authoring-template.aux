@@ -34,13 +34,6 @@
 \@writefile{toc}{\contentsline {subsection}{\numberline {{3.2}}Stage 2: Automatic Speech Recognition (ASR)}{3}{subsection.3.2}\protected@file@percent }
 \citation{vaswani2017attention}
 \citation{hu2022lora}
-\bibstyle{oup-plain}
-\bibdata{reference}
-\bibcite{baevski2020wav2vec2}{{1}{}{{}}{{}}}
-\bibcite{nguyenvulebinh_wav2vec2_base_vi}{{2}{}{{}}{{}}}
-\bibcite{hu2022lora}{{3}{}{{}}{{}}}
-\bibcite{whisper_repo}{{4}{}{{}}{{}}}
-\bibcite{zipformer_hf}{{5}{}{{}}{{}}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {{3.3}}Stage 3: LLM Fine-Tuning}{4}{subsection.3.3}\protected@file@percent }
 \@writefile{lot}{\contentsline {table}{\numberline {1}{\ignorespaces CRM JSON Field Schema Extracted by the LLM}}{4}{table.caption.13}\protected@file@percent }
 \newlabel{tab:crm_fields}{{1}{4}{CRM JSON Field Schema Extracted by the LLM}{table.caption.13}{}}
@@ -50,24 +43,40 @@
 \newlabel{sec:experimental-setup}{{4}{4}{Experimental Setup}{section.4}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {{4.1}}Data}{4}{subsection.4.1}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsection}{\numberline {{4.2}}Hardware and Software}{4}{subsection.4.2}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {{4.3}}Hyperparameters}{4}{subsection.4.3}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {5}Results}{4}{section.5}\protected@file@percent }
-\newlabel{sec:results}{{5}{4}{Results}{section.5}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {6}Discussion}{4}{section.6}\protected@file@percent }
-\newlabel{sec:discussion}{{6}{4}{Discussion}{section.6}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {{6.1}}Obstacles and Strategies}{4}{subsection.6.1}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {{6.2}}What We Learned}{4}{subsection.6.2}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {{6.3}}Future Directions}{4}{subsection.6.3}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {7}Conclusion}{4}{section.7}\protected@file@percent }
-\newlabel{sec:conclusion}{{7}{4}{Conclusion}{section.7}{}}
+\citation{hu2022lora}
+\bibstyle{oup-plain}
+\bibdata{reference}
+\bibcite{baevski2020wav2vec2}{{1}{}{{}}{{}}}
+\bibcite{nguyenvulebinh_wav2vec2_base_vi}{{2}{}{{}}{{}}}
+\@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces Dataset curation and train-test splitting process.}}{5}{figure.caption.15}\protected@file@percent }
+\newlabel{fig:dataset_flow}{{3}{5}{Dataset curation and train-test splitting process}{figure.caption.15}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {{4.3}}Hyperparameters}{5}{subsection.4.3}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {2}{\ignorespaces Model Fine-Tuning Hyperparameters}}{5}{table.caption.16}\protected@file@percent }
+\newlabel{tab:hyperparameters}{{2}{5}{Model Fine-Tuning Hyperparameters}{table.caption.16}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {5}Results}{5}{section.5}\protected@file@percent }
+\newlabel{sec:results}{{5}{5}{Results}{section.5}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {{5.1}}Training Convergence}{5}{subsection.5.1}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces Training loss curves for Qwen3.5-0.8B and Qwen3.5-2B over one epoch (55 steps) of LoRA fine-tuning.}}{5}{figure.caption.17}\protected@file@percent }
+\newlabel{fig:training_loss}{{4}{5}{Training loss curves for Qwen3.5-0.8B and Qwen3.5-2B over one epoch (55 steps) of LoRA fine-tuning}{figure.caption.17}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {{5.2}}Extraction Performance}{5}{subsection.5.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {6}Discussion}{5}{section.6}\protected@file@percent }
+\newlabel{sec:discussion}{{6}{5}{Discussion}{section.6}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {{6.1}}Obstacles and Strategies}{5}{subsection.6.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {{6.2}}What We Learned}{5}{subsection.6.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {{6.3}}Future Directions}{5}{subsection.6.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {7}Conclusion}{5}{section.7}\protected@file@percent }
+\newlabel{sec:conclusion}{{7}{5}{Conclusion}{section.7}{}}
+\bibcite{hu2022lora}{{3}{}{{}}{{}}}
+\bibcite{whisper_repo}{{4}{}{{}}{{}}}
+\bibcite{zipformer_hf}{{5}{}{{}}{{}}}
 \bibcite{SileroVAD}{{6}{}{{}}{{}}}
 \bibcite{SileroVADQualityMetrics}{{7}{}{{}}{{}}}
 \bibcite{vaswani2017attention}{{8}{}{{}}{{}}}
 \bibcite{wei2023zero_shot_ie}{{9}{}{{}}{{}}}
 \bibcite{zipformer_paper}{{10}{}{{}}{{}}}
-\global\@namedef{@lastpage@}{5}
+\global\@namedef{@lastpage@}{6}
 \expandafter\ifx\csname c@myauthcount@totc\endcsname\relax\newcounter{myauthcount@totc}\fi\setcounter{myauthcount@totc}{1}
 \expandafter\ifx\csname c@myhistorycount@totc\endcsname\relax\newcounter{myhistorycount@totc}\fi\setcounter{myhistorycount@totc}{0}
 \expandafter\ifx\csname c@myaddcount@totc\endcsname\relax\newcounter{myaddcount@totc}\fi\setcounter{myaddcount@totc}{1}
 \providecommand\NAT@force@numbers{}\NAT@force@numbers
-\gdef \@abspage@last{5}
+\gdef \@abspage@last{6}
