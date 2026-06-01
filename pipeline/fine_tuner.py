@@ -24,9 +24,8 @@ def train_model(model_name="Qwen/Qwen3.5-0.8B", dataset_path="data/finetuning_da
     # Configure LoRA adapters
     model = FastLanguageModel.get_peft_model(
         model,
-        r = 16, # Choose any number > 0 ! Suggested 8, 16, 32, 64, 128
-        target_modules = ["q_proj", "k_proj", "v_proj", "o_proj",
-                          "gate_proj", "up_proj", "down_proj",],
+        r = 8, # Reduced from 16 to save memory
+        target_modules = ["q_proj", "v_proj"], # Restricted from all modules to just attention to save VRAM
         lora_alpha = 16,
         lora_dropout = 0, # Supports any, but = 0 is optimized
         bias = "none",    # Supports any, but = "none" is optimized
