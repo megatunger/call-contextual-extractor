@@ -1,0 +1,5 @@
+Model,Variant,Valid_JSON_%,Busy_Accuracy_%,Sector_Match_%,Schedule_Match_%,Interested_MAE,Interested_MSE,Interested_Acc_±1_%,Rating_MAE,Rating_MSE,Rating_Acc_±1_%,Model_Path,Samples_Done,Num_Test
+Qwen3.5-2B,base,76.36,30.95,0.0,34.52,3.62,20.18,20.51,,,,Qwen/Qwen3.5-2B,110,110
+Qwen3.5-0.8B,base,100.0,64.55,8.18,70.0,4.07,26.06,28.7,,,,Qwen/Qwen3.5-0.8B,110,110
+Qwen3.5-2B,fine-tuned,76.36,30.95,0.0,34.52,3.62,20.18,20.51,,,,data/models/Qwen3.5-2B_lora,110,110
+Qwen3.5-0.8B,fine-tuned,94.55,56.73,41.35,75.96,3.68,22.13,33.33,,,,data/models/Qwen3.5-0.8B_lora,110,110
