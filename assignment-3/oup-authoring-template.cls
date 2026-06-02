@@ -871,44 +871,44 @@
   \if@traditional
     \if@large
       \def\@evenhead{\vbox{\hbox to \textwidth{\fontsize{9.5bp}{12}\selectfont%
-            {\textbf{\thepage}}{\hspace*{9pt}{\textbullet}\hspace*{9pt}}{\itshape\strut\@journaltitle, \@pubyear,\ Volume \@vol,\ Issue \@issue}\hfill}}}%
+            {\textbf{\thepage}}{\hspace*{9pt}{\textbullet}\hspace*{9pt}}{\itshape\strut\@journaltitle}\hfill}}}%
       \def\@oddhead{\vbox{\hbox to \textwidth{\fontsize{9.5bp}{12}\selectfont%
-            \hfill{{\itshape\strut\@journaltitle, \@pubyear,\ Volume \@vol,\ Issue \@issue}}{\hspace*{9pt}{\textbullet}\hspace*{9pt}}{\textbf{\thepage}}}%
+            \hfill{{\itshape\strut\@journaltitle}}{\hspace*{9pt}{\textbullet}\hspace*{9pt}}{\textbf{\thepage}}}%
             }}%
     \else
     \if@medium
       \def\@evenhead{\vbox{\hbox to \textwidth{\fontsize{9.5bp}{12}\selectfont
-            {\fontsize{9bp}{12}\selectfont\textbf{\thepage}}{\hspace*{9pt}{\textbullet}\hspace*{9pt}}{\itshape\strut\@journaltitle, \@pubyear,\ Volume \@vol,\ Issue \@issue}\hfill}}}%
+            {\fontsize{9bp}{12}\selectfont\textbf{\thepage}}{\hspace*{9pt}{\textbullet}\hspace*{9pt}}{\itshape\strut\@journaltitle}\hfill}}}%
       \def\@oddhead{\vbox{\hbox to \textwidth{\fontsize{9.5bp}{12}\selectfont
-            \hfill{{\itshape\strut\@journaltitle, \@pubyear,\ Volume \@vol,\ Issue \@issue}}{\hspace*{9pt}{\textbullet}\hspace*{9pt}}{\fontsize{9bp}{12}\selectfont\textbf{\thepage}}}%
+            \hfill{{\itshape\strut\@journaltitle}}{\hspace*{9pt}{\textbullet}\hspace*{9pt}}{\fontsize{9bp}{12}\selectfont\textbf{\thepage}}}%
             }}%
     \else
-      \def\@evenhead{\hbox to \textwidth{{\textbf{\thepage}}{\hspace*{9pt}{\textbullet}\hspace*{9pt}}{\strut\@journaltitle, \@pubyear,\ Volume \@vol,\ Issue \@issue}\hfill}}%
-      \def\@oddhead{\hbox to \textwidth{\hfill{\textit{\rightmark}, Volume \@vol, Issue \@issue}{\hspace*{9pt}{\textbullet}\hspace*{9pt}}\textbf{\thepage}}%
+      \def\@evenhead{\hbox to \textwidth{{\textbf{\thepage}}{\hspace*{9pt}{\textbullet}\hspace*{9pt}}{\strut\@journaltitle}\hfill}}%
+      \def\@oddhead{\hbox to \textwidth{\hfill{\textit{\rightmark}}{\hspace*{9pt}{\textbullet}\hspace*{9pt}}\textbf{\thepage}}%
             }%
     \fi
     \fi
   \else
   \if@contemporary
       \def\@evenhead{\hbox to \textwidth{\sffamily\fontsize{8bp}{10bp}\selectfont%
-            {{\fontseries{m}\fontsize{9bp}{10bp}\selectfont\thepage}}\hspace*{4pt}\raisebox{-1.5pt}{\rule{.3pt}{8pt}}\hspace*{4pt}{\strut\@journaltitle, \@pubyear,\ Volume \@vol,\ Issue \@issue}\hfill}}%
+            {{\fontseries{m}\fontsize{9bp}{10bp}\selectfont\thepage}}\hspace*{4pt}\raisebox{-1.5pt}{\rule{.3pt}{8pt}}\hspace*{4pt}{\strut\@journaltitle}\hfill}}%
       \def\@oddhead{\hbox to \textwidth{\hfill\sffamily\fontsize{8bp}{10bp}\selectfont
-            {{\strut\@journaltitle, \@pubyear,\ Volume \@vol,\ Issue \@issue}}\hspace*{4pt}\raisebox{-1.5pt}{\rule{.3pt}{8pt}}\hspace*{4pt}{{\fontseries{m}\fontsize{9bp}{10bp}\selectfont\thepage}}%
+            {{\strut\@journaltitle}}\hspace*{4pt}\raisebox{-1.5pt}{\rule{.3pt}{8pt}}\hspace*{4pt}{{\fontseries{m}\fontsize{9bp}{10bp}\selectfont\thepage}}%
             }}%
   \else
   \if@modern
      \def\@evenhead{\vbox{\hbox to \textwidth{\if@medium\fontsize{6.5bp}{6.5}\selectfont\else\fontsize{8bp}{10}\selectfont\fi
         {\sffamilyfontbold{\selectfont\thepage}}\hfill\sffamilyfontitalic{\fontshape{it}\selectfont
-        \strut\@journaltitle, \@pubyear,\ Volume \@vol,\ Issue \@issue}}\if@medium\vspace{5.5\p@}\else\vspace{8\p@}\fi\color{black!60}\rule{\textwidth}{1\p@}}}%
+        \strut\@journaltitle}}\if@medium\vspace{5.5\p@}\else\vspace{8\p@}\fi\color{black!60}\rule{\textwidth}{1\p@}}}%
       \def\@oddhead{\vbox{\hbox to \textwidth{\if@medium\fontsize{6.5bp}{6.5}\selectfont\else\fontsize{8bp}{10}\selectfont\fi
-        {\sffamilyfontitalic{\fontshape{it}\selectfont\strut\@journaltitle, \@pubyear,\ Volume \@vol,\ Issue \@issue}}\hfill{\sffamilyfontbold{\thepage}}}%
+        {\sffamilyfontitalic{\fontshape{it}\selectfont\strut\@journaltitle}}\hfill{\sffamilyfontbold{\thepage}}}%
         \if@medium\vspace{5.5\p@}\else\vspace{8\p@}\fi\color{black!60}\rule{\textwidth}{1\p@}}}%
    \else
       \def\@evenhead{\vbox{\hbox to \textwidth{\fontsize{8bp}{10}\selectfont
         {\sffamilyfontbold{\selectfont\thepage}}\hfill\sffamilyfontitalic{\fontshape{it}\selectfont
-        \strut\@journaltitle, \@pubyear,\ Volume \@vol,\ Issue \@issue}}\vspace{5\p@}\rule{\textwidth}{1\p@}}}%
+        \strut\@journaltitle}}\vspace{5\p@}\rule{\textwidth}{1\p@}}}%
       \def\@oddhead{\vbox{\hbox to \textwidth{\fontsize{8bp}{10}\selectfont
-        {\sffamilyfontitalic{\fontshape{it}\selectfont\strut\@journaltitle, \@pubyear,\ Volume \@vol,\ Issue \@issue}}\hfill{\sffamilyfontbold{\thepage}}}%
+        {\sffamilyfontitalic{\fontshape{it}\selectfont\strut\@journaltitle}}\hfill{\sffamilyfontbold{\thepage}}}%
         \vspace{5\p@}\rule{\textwidth}{1\p@}}}%
   \fi\fi\fi
   \def\titlemark##1{\markboth{##1}{##1}}%
@@ -926,7 +926,7 @@
   \if@modern
       \def\@oddhead{\raisebox{-10.3mm}[0pt][0pt]{\hbox to \textwidth{%{\color{black!50}\rule{1.5mm}{19mm}}\hskip2.5mm%
               {\vbox to 19mm{\hbox{}\vfill\hbox to \if@small108mm\else122mm\fi{{%
-              \parbox{290pt}{\raggedright{{\sffamily\fontsize{6.5bp}{9.5bp}\selectfont\textit{\@journaltitle},\ \@copyrightyear, \@volume,  \thepage--\thelastpage\par\vskip0pt}}
+              \parbox{290pt}{\raggedright{{\sffamily\fontsize{6.5bp}{9.5bp}\selectfont\textit{\@journaltitle}  \thepage--\thelastpage\par\vskip0pt}}
               {\sffamily\fontsize{6.5bp}{9.bp}\selectfont\@DOI\par%
               \ifx\@access\@empty\else\@access\par\fi\vskip0pt
               \ifx\@specialissue\@empty\else\@specialissue\par\fi
@@ -936,7 +936,7 @@
               }\vfill\hbox{}}}\hfill{\smash{\societylogo{}\hspace*{12pt}}\color{black!20}\rule{45pt}{55pt}}}}}%
     \def\@evenhead{\raisebox{-10.3mm}[0pt][0pt]{\hbox to \textwidth{%{\color{black!50}\rule{1.5mm}{19mm}}\hskip2.5mm%
               {\vbox to 19mm{\hbox{}\vfill\hbox to \if@small108mm\else122mm\fi{{%
-              \parbox{290pt}{\raggedright{{\sffamily\fontsize{8bp}{10bp}\selectfont\textit{\@journaltitle},\ \@copyrightyear, \@volume, \thepage--\thelastpage\par\vskip0pt}}
+              \parbox{290pt}{\raggedright{{\sffamily\fontsize{8bp}{10bp}\selectfont\textit{\@journaltitle} \thepage--\thelastpage\par\vskip0pt}}
               {\sffamily\fontsize{7bp}{9bp}\selectfont\@DOI\par%
               \ifx\@access\@empty\else\@access\par\fi\vskip0pt
               \ifx\@specialissue\@empty\else\@specialissue\par\fi
@@ -948,7 +948,7 @@
     \def\@oddhead{\raisebox{\if@large-6pt\else\if@medium-6pt\else-6pt\fi\fi}[0pt][0pt]{%
               \hbox to \textwidth{{%
               \parbox{0.8\textwidth}{\raggedright\fontsize{7bp}{10bp}\selectfont
-              \textit{\@journaltitle},\ \@copyrightyear, pp. \thepage--\thelastpage\par
+              \textit{\@journaltitle} \thepage--\thelastpage\par
               \@DOI\par\ifx\@access\@empty\else\@access\par\fi%
               \ifx\@appnotes\@empty\else\textbf{\@appnotes}\par\fi}
                 }%
@@ -956,7 +956,7 @@
     \def\@evenhead{\raisebox{\if@large-6pt\else\if@medium-6pt\else-6pt\fi\fi}[0pt][0pt]{%
               \hbox to \textwidth{{%
               \parbox{0.8\textwidth}{\raggedright\fontsize{7bp}{10bp}\selectfont
-              \textit{\@journaltitle},\ \@copyrightyear, pp. \thepage--\thelastpage\par
+              \textit{\@journaltitle} \thepage--\thelastpage\par
               \@DOI\par\ifx\@access\@empty\else\@access\par\fi%
               \ifx\@appnotes\@empty\else\textbf{\@appnotes}\par\fi}
                 }%
@@ -965,7 +965,7 @@
   \if@contemporary
     \def\@oddhead{\raisebox{\if@large-18.8mm\else\if@medium-19.1mm\else-17mm\fi\fi}[0pt][0pt]{\hbox to \textwidth{{\color{black!50}\rule{1.5mm}{19mm}}\hskip2.5mm%
               {\vbox to 19mm{\vskip2.5pt\hbox to \textwidth{{%
-              \parbox{290pt}{\raggedright{{\sffamily\fontsize{8bp}{10bp}\selectfont\textit{\@journaltitle},\ \@copyrightyear, pp. \thepage--\thelastpage\par\vskip3pt}}
+              \parbox{290pt}{\raggedright{{\sffamily\fontsize{8bp}{10bp}\selectfont\textit{\@journaltitle} \thepage--\thelastpage\par\vskip3pt}}
               {\sffamily\fontsize{7bp}{9bp}\selectfont\@DOI\par%
               \ifx\@access\@empty\else\@access\par\fi\vskip3pt
               \ifx\@appnotes\@empty\else\textbf{\@appnotes}\par\fi}
@@ -973,7 +973,7 @@
               \hfill\hbox{\smash{\societylogo{}\hspace*{12pt}}\color{black!20}\rule{55pt}{20pt}}\hskip4mm}\vfill\hbox{}}}}}}%
     \def\@evenhead{\raisebox{\if@large-18.8mm\else\if@medium-19.1mm\else-17mm\fi\fi}[0pt][0pt]{\hbox to \textwidth{{\color{black!50}\rule{1.5mm}{19mm}}\hskip2.5mm%
               {\vbox to 19mm{\vskip2.5pt\hbox to \textwidth{{%
-              \parbox{290pt}{\raggedright{{\sffamily\fontsize{8bp}{10bp}\selectfont\textit{\@journaltitle},\ \@copyrightyear, pp. \thepage--\thelastpage\par\vskip3pt}}
+              \parbox{290pt}{\raggedright{{\sffamily\fontsize{8bp}{10bp}\selectfont\textit{\@journaltitle} \thepage--\thelastpage\par\vskip3pt}}
               {\sffamily\fontsize{7bp}{9bp}\selectfont\@DOI\par%
               \ifx\@access\@empty\else\@access\par\fi\vskip3pt
               \ifx\@appnotes\@empty\else\textbf{\@appnotes}\par\fi}

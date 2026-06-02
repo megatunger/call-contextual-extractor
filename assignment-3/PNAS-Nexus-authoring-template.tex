@@ -65,14 +65,18 @@
 \begin{document}
 
 \journaltitle{} 
-\DOI{DOI added during production}
-\copyrightyear{2026}
-\pubyear{2026}
-\vol{0} 
-\issue{0}
-\access{Published: Date added during production}
-\appnotes{Paper}
+\DOI{}
+\copyrightyear{}
+\pubyear{}
+\vol{} 
+\issue{}
+\access{}
+\appnotes{}
 
+\makeatletter
+\def\@thehead{}
+\makeatother
+ 
 \firstpage{1}
 
 %\subtitle{Subject Section}
@@ -87,13 +91,13 @@
 \revised{Date}{0}{2026}
 \accepted{Date}{0}{2026}
 
-%\editor{Associate Editor: Name}
+%\editor{Associate Editor: Name} 
 
-\abstract{Sales agents on our CRM platform (uCall) currently fill in customer fields by hand after every call. This project presents a three-stage pipeline to automate that process: (1) Silero VAD removes silence and noise from the raw audio, (2) a wav2vec\,2.0 model transcribes the remaining speech in Vietnamese, and (3) a LoRA-fine-tuned LLM extracts structured CRM fields from the transcript. The full staging export comprises 13{,}232 manual sales calls. An initial evaluation subset of 600 calls was selected; after dropping 50 broken records that failed to yield transcripts, the final dataset comprises 550 calls. This dataset uses an 80/20 train--test split (440 train, 110 test) for the extraction stage. Evaluation uses Word Error Rate for ASR and field-level metrics on the held-out test set (JSON validity and agreement with teacher labels).} 
+\abstract{Sales agents on our CRM platform (uCall) currently fill in customer data fields by hand after every call, creating significant operational overhead. This project present a complete, production-ready pipeline for automate this process. We chaining Voice Activity Detection (Silero VAD) for remove background noise and a Vietnamese Automatic Speech Recognition model (wav2vec\,2.0) for transcribe speech. For the final extraction stage, we demonstrate that a 0.8B parameter language model, fine-tuned using Low-Rank Adaptation (LoRA), can accurate extract structured CRM fields from these transcripts. Evaluated on a curated dataset of 550 real-world sales calls, the 0.8B model achieved high domain accuracy, outperforming a larger 2B model that collapsed under identical hardware constraints. Furthermore, we experimented across diverse hardware environments (Google Colab and Apple Silicon) to prove that businesses can deploy effective, localized AI solutions on consumer hardware, cutting the costs associated with large external cloud APIs.} 
 
-\keywords{keyword1, keyword2, keyword3, keyword4}   
+\keywords{Information Extraction, Large Language Models, LoRA Fine-Tuning, Automatic Speech Recognition, CRM Automation}     
 
-\keywords[Abbreviations]{abbreviation1, abbreviation2, abbreviation3, abbreviation4}
+\keywords[Abbreviations]{LLM, LoRA, ASR, VAD, CRM} 
 
 
 \maketitle
@@ -120,29 +124,29 @@
 \label{sec:introduction}
 
 \subsection{Problem Statement} 
-Sales agents on the uCall platform currently fill in customer data fields by hand after every call. This manual process takes too much time and causes errors. We are building an automated system to extract structured CRM fields directly from raw audio calls.
+Sales agents on the uCall platform currently filling in customer data fields by hand after every call. This manual process take too much time and causing errors. We building an automated system for extract structured CRM fields directly from raw audio calls.
 
 \subsection{Motivation}
-Manual data entry costs businesses time and money. Large language models can extract this data but they are often too big and expensive to run. This project shows how to combine audio processing tools with a small local language model. We use a fine tuning method called LoRA to accurately extract data using standard hardware. \textbf{This is important because it proves that companies do not need huge external models to automate their data tasks.}
+Manual data entry costs businesses time and money. Large language models can extract this data but they are often too big and expensive to run. This project shows how to combine audio processing tools with a small local language model. We use a fine tuning method called LoRA to accurately extract data using standard hardware. \textbf{This is important because it proves that companies do not need large external models to automate their data tasks.}
 
 \subsection{Contributions}
 \begin{itemize}
-    \item Developed a complete and production ready pipeline to process raw audio into structured data.
-    \item (Placeholder) I will add the quantitative results later.
-    \item Deployed a fine tuned local language model that extracts data without relying on expensive cloud APIs.
+    \item Designed a production-ready pipeline that solve a real-world business problem by process raw audio into structured data.
+    \item Experimented with fine-tuning Large Language Models across diverse hardware environments, including Google Colab (CUDA) and local Apple Silicon.
+    \item Demonstrated that a fine-tuned 0.8B parameter model is highly effective and small enough to significantly cut operational LLM costs compared to expensive cloud APIs.
 \end{itemize}
 
 \section{Related Work} 
 \label{sec:related-work}
-Information extraction from spoken dialogue combines speech recognition and language modeling. Existing methods often rely on huge language models for zero shot extraction like ChatGPT \cite{wei2023zero_shot_ie} or use separate large scale speech models like Whisper \cite{whisper_repo}. While these approaches are accurate they are very expensive and slow for business use. Other research focuses on base architectures \cite{vaswani2017attention} or audio models like wav2vec 2.0 \cite{baevski2020wav2vec2} and Zipformer \cite{zipformer_paper}. However most studies look at these models in isolation. The gap in the current literature is a lack of end to end systems optimized for specific tasks on cheap hardware. Our approach combines a Vietnamese wav2vec 2.0 model with a small local language model. We use LoRA \cite{hu2022lora} to train this small model to perform extraction as well as massive models.
+Information extraction from spoken dialogue combines speech recognition and language modeling. Existing methods often rely on large language models for zero-shot extraction such as ChatGPT \cite{wei2023zero_shot_ie} or use separate large scale speech models like Whisper \cite{whisper_repo}. While these approaches are accurate they are very expensive and slow for business use. Other research focuses on base architectures \cite{vaswani2017attention} or audio models like wav2vec 2.0 \cite{baevski2020wav2vec2} and Zipformer \cite{zipformer_paper}. However most studies look at these models in isolation. The gap in the current literature is a lack of end to end systems optimized for specific tasks on consumer hardware. Our approach combines a Vietnamese wav2vec 2.0 model with a small local language model. We use LoRA \cite{hu2022lora} to train this small model to perform extraction as well as larger models.
 
 \subsection{Novelty and Significance}
-This project is novel because it \textbf{builds a complete pipeline from raw stereo audio to structured data without relying on huge external APIs}. We use Silero VAD \cite{SileroVAD} to clean the audio and maintain speaker channels. Then we \textbf{fine tune a small local model to replace expensive cloud services}. The significance of this work is that it \textbf{provides a practical blueprint for companies to automate data entry}. It shows that businesses can \textbf{achieve high accuracy on domain specific tasks using local hardware}.
+This project is novel because it \textbf{builds a complete pipeline from raw stereo audio to structured data without relying on large external APIs}. We use Silero VAD \cite{SileroVAD} to clean the audio and maintain speaker channels. Then we \textbf{fine tune a small local model to replace expensive cloud services}. The significance of this work is that it \textbf{provides a practical blueprint for companies to automate data entry}. It shows that businesses can \textbf{achieve high accuracy on domain specific tasks using local hardware}.
 
 \section{Methodology} 
 \label{sec:methodology} 
 
-The goal of this work is to automatically extract customer information from call audio and fill the CRM fields. We propose a three-stage pipeline to accomplish this, as illustrated in Figure~\ref{fig:pipeline}. 
+The goal of this work is automatically extracting customer information from call audio and fill the CRM fields. We proposing a three-stage pipeline to accomplish this, like illustrated in Figure~\ref{fig:pipeline}. 
 
 \begin{figure}[hbt!] 
   \centering
@@ -205,10 +209,10 @@ In the final stage, reconstructed transcripts are formatted into a supervised fi
     \midrule
     \texttt{customer\_sector} & String$|$Null & Industry or sector \\
     \texttt{customer\_needs} & String & Brief summary of what the customer needs \\
-    \texttt{customer\_interested} & Number & 1--10 scale of interest \\
+    \texttt{customer\_interested} & Number & 1 to 10 scale of interest \\
     \texttt{customer\_busy} & Boolean & True if they said they are busy, false otherwise \\
     \texttt{customer\_scheduled\_at} & String$|$Null & Time or date they want to be called back \\
-    \texttt{customer\_rating} & Number$|$Null & Optional 1--10 rating, if available \\
+    \texttt{customer\_rating} & Number$|$Null & Optional 1 to 10 rating, if available \\
     \bottomrule
   \end{tabular}
 \end{table}  
@@ -391,7 +395,7 @@ Table \ref{tab:evaluation_results} details the extraction performance across the
 \subsection{Obstacles and Strategies}
 The reality of executing this pipeline exposed significant gaps between theoretical ML workflows and practical constraints. Our main engineering challenges revolved around data processing, hyperparameter tuning, and flawed evaluation setups:
 \begin{itemize}
-    \item \textbf{Data Leakage and Train/Test Partitioning:} During our initial modeling phase, we made a critical oversight: we forgot to explicitly partition the dataset into training and testing sets before fine-tuning. When we first evaluated the model, it achieved suspiciously perfect accuracy on the demo queries. Realizing we had severely overfit the model via data leakage, we had to scrap the LoRA adapter entirely, implement a strict $80/20$ data split, and retrain from scratch to obtain honest metrics.
+    \item \textbf{Data Leakage and Train/Test Partitioning:} During our initial modeling phase, we make a critical oversight: we forgetting explicitly partition the dataset into training and testing sets before fine-tuning. When we first evaluating the model, it achieve suspiciously perfect accuracy on the demo queries. Realizing we had severely overfit the model via data leakage, we had to scrap the LoRA adapter entirely, implement a strict $80/20$ data split, and retrain from scratch to obtain honest metrics.
     \item \textbf{Hyperparameter Tuning Instability:} We spent considerable time experimenting with LoRA hyperparameters, which initially led to catastrophic results. We mistakenly set the learning rate too high ($1\mathrm{e}{-3}$) while pushing the adapter rank to $r=64$ in an attempt to force the model to learn faster. This caused severe training instability and loss spikes, resulting in a model that output repetitive gibberish. We overcame this by lowering the learning rate to $2\mathrm{e}{-4}$ and aggressively reducing the rank to $r=16$, which immediately stabilized convergence.
     \item \textbf{Evaluation Framework Limitations:} Choosing how to evaluate the model proved to be one of our most frustrating obstacles. Standard classification metrics completely failed because generative text doesn't always match predefined labels exactly. Our initial Python evaluation scripts incorrectly penalized the model for minor formatting differences (e.g., \texttt{"IT\_Support"} vs. \texttt{"IT Support"}). We had to completely overhaul our evaluation strategy mid-project, pivoting to semantic soft-matching and Mean Absolute Error (MAE) to fairly assess the model's actual intent.
     \item \textbf{Data Engineering Overhead:} We significantly underestimated the overhead of processing the raw 32\,GB audio dataset. Our initial sequential download script was projected to take over 24 hours. We had to pause modeling entirely to rewrite the data pipeline using Python's \texttt{concurrent.futures}. While this reduced ingestion time to a few hours, it immediately introduced race conditions and API rate-limiting blocks from Gemini, forcing us to implement exponential backoff.
@@ -417,9 +421,9 @@ If provided with unlimited compute and time, we would evolve this project in thr
 \section{Conclusion}
 \label{sec:conclusion}
 
-This project successfully demonstrated the viability of automating structured CRM data extraction from noisy Vietnamese telemarketing calls using a fully localized, resource-constrained pipeline. By sequentially chaining Voice Activity Detection (Silero VAD), Automatic Speech Recognition (wav2vec 2.0), and a Low-Rank Adaptation (LoRA) fine-tuned language model (Qwen3.5-0.8B), we proved that complex, domain-specific semantic extraction can be achieved without relying on massive, proprietary cloud APIs. 
+This project successfully demonstrate the viability of automating structured CRM data extraction from noisy Vietnamese telemarketing calls using a fully localized, resource-constrained pipeline. By sequentially chaining Voice Activity Detection (Silero VAD), Automatic Speech Recognition (wav2vec 2.0), and a Low-Rank Adaptation (LoRA) fine-tuned language model (Qwen3.5-0.8B), we proved that complex, domain-specific semantic extraction can be achieved without relying on large proprietary cloud APIs. 
 
-Our findings indicate that in the realm of applied generative AI, high-quality data curation and architectural alignment heavily outweigh raw parameter count. The stark success of the instruction-tuned 0.8B model, contrasted against the optimization collapse of the larger 2B model on identical 16\,GB hardware, underscores the necessity of matching model scope to physical computing constraints. Ultimately, this pipeline provides a foundational blueprint for enterprises seeking to reduce the operational overhead of manual data entry while maintaining complete internal data sovereignty and cost efficiency.
+Our findings indicate that in the realm of applied generative AI, high-quality data curation and architectural alignment is heavily outweighing raw parameter count. The success of the instruction-tuned 0.8B model, contrasted against the optimization collapse of the larger 2B model on identical 16\,GB hardware, underscores the necessity of matching model scope to physical computing constraints. Ultimately, this pipeline provides a foundational blueprint for enterprises seeking to reduce the operational overhead of manual data entry while maintaining complete internal data sovereignty and cost efficiency.
 
 \bibliographystyle{oup-plain}
 \bibliography{reference}

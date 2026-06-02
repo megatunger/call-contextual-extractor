@@ -422,8 +422,8 @@ INPUT /usr/local/texlive/2026/texmf-dist/fonts/tfm/public/amsfonts/symbols/msam5
 INPUT /usr/local/texlive/2026/texmf-dist/fonts/tfm/public/amsfonts/symbols/msbm7.tfm
 INPUT /usr/local/texlive/2026/texmf-dist/fonts/tfm/public/amsfonts/symbols/msbm5.tfm
 INPUT /usr/local/texlive/2026/texmf-dist/fonts/tfm/public/rsfs/rsfs7.tfm
-INPUT /usr/local/texlive/2026/texmf-dist/fonts/tfm/vntex/vnr/vnssbx10.tfm
 INPUT /usr/local/texlive/2026/texmf-var/fonts/map/pdftex/updmap/pdftex.map
+INPUT /usr/local/texlive/2026/texmf-dist/fonts/tfm/vntex/vnr/vnssbx10.tfm
 INPUT ./images/before_after_process_vad.png
 INPUT ./images/before_after_process_vad.png
 INPUT ./images/before_after_process_vad.png
@@ -485,6 +485,5 @@ INPUT /usr/local/texlive/2026/texmf-dist/fonts/type1/vntex/vnr/vnr9.pfb
 INPUT /usr/local/texlive/2026/texmf-dist/fonts/type1/vntex/vnr/vnss8.pfb
 INPUT /usr/local/texlive/2026/texmf-dist/fonts/type1/vntex/vnr/vnss9.pfb
 INPUT /usr/local/texlive/2026/texmf-dist/fonts/type1/vntex/vnr/vnssbx10.pfb
-INPUT /usr/local/texlive/2026/texmf-dist/fonts/type1/vntex/vnr/vnssi8.pfb
 INPUT /usr/local/texlive/2026/texmf-dist/fonts/type1/vntex/vnr/vnssi9.pfb
 INPUT /usr/local/texlive/2026/texmf-dist/fonts/type1/vntex/vnr/vntt9.pfb
