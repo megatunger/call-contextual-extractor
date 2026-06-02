@@ -1,14 +1,14 @@
 # Fdb version 4
-["bibtex PNAS-Nexus-authoring-template"] 1780294918.1311 "PNAS-Nexus-authoring-template.aux" "PNAS-Nexus-authoring-template.bbl" "PNAS-Nexus-authoring-template" 1780294919.86479 0
+["bibtex PNAS-Nexus-authoring-template"] 1780378268.33732 "PNAS-Nexus-authoring-template.aux" "PNAS-Nexus-authoring-template.bbl" "PNAS-Nexus-authoring-template" 1780378270.44747 0
   "./oup-plain.bst" 1779978140.28098 20621 ea74bec9816e8a20db0cfd17a7f1ea12 ""
   "./reference.bib" 1780240916.30945 4605 505384beca517ea935e16212e553d07f ""
-  "PNAS-Nexus-authoring-template.aux" 1780294919.56819 6847 8c98a9338d88e6f0596b90abd91aff9f "pdflatex"
+  "PNAS-Nexus-authoring-template.aux" 1780378270.06052 7222 5ca917fcd74a6918dbb45ebeeb3076bb "pdflatex"
   (generated)
   "PNAS-Nexus-authoring-template.bbl"
   "PNAS-Nexus-authoring-template.blg"
   (rewritten before read)
-["pdflatex"] 1780294918.24968 "/Users/megatunger/Github/call-contextual-extractor/assignment-3/PNAS-Nexus-authoring-template.tex" "PNAS-Nexus-authoring-template.pdf" "PNAS-Nexus-authoring-template" 1780294919.86492 0
-  "/Users/megatunger/Github/call-contextual-extractor/assignment-3/PNAS-Nexus-authoring-template.tex" 1780294915.88374 26779 bbc004ed4c9224e71f7152a9a849e46c ""
+["pdflatex"] 1780378268.43192 "/Users/megatunger/Github/call-contextual-extractor/assignment-3/PNAS-Nexus-authoring-template.tex" "PNAS-Nexus-authoring-template.pdf" "PNAS-Nexus-authoring-template" 1780378270.44762 0
+  "/Users/megatunger/Github/call-contextual-extractor/assignment-3/PNAS-Nexus-authoring-template.tex" 1780378265.4462 29758 bc375bf86fac7b070e128be8cd9f2428 ""
   "/usr/local/texlive/2026/texmf-dist/fonts/map/fontname/texfonts.map" 1577235249 3524 cb3e574dea2d1052e39280babc910dc8 ""
   "/usr/local/texlive/2026/texmf-dist/fonts/tfm/public/amsfonts/cmextra/cmex7.tfm" 1246382020 1004 54797486969f23fa377b128694d548df ""
   "/usr/local/texlive/2026/texmf-dist/fonts/tfm/public/amsfonts/cmextra/cmex8.tfm" 1246382020 988 bdf658c3bfc2d96d3c8b02cfc1c94c20 ""
@@ -237,10 +237,10 @@
   "/usr/local/texlive/2026/texmf-var/fonts/map/pdftex/updmap/pdftex.map" 1773203178 5541377 04880c840ca220163a28f1a3af0ee662 ""
   "/usr/local/texlive/2026/texmf-var/web2c/pdftex/pdflatex.fmt" 1773203121 3636768 c366a1d15fd02eee874f45e688db42e0 ""
   "/usr/local/texlive/2026/texmf.cnf" 1772409725 577 648cd9f92f9c0eac486f4c71c85cfbbe ""
-  "PNAS-Nexus-authoring-template.aux" 1780294919.56819 6847 8c98a9338d88e6f0596b90abd91aff9f "pdflatex"
-  "PNAS-Nexus-authoring-template.bbl" 1780294918.247 2513 07c8b6afb2a2880cd2be4174ee874766 "bibtex PNAS-Nexus-authoring-template"
-  "PNAS-Nexus-authoring-template.out" 1780294919.56975 3406 ca98af48e16043f12a1963aaeb5e6e00 "pdflatex"
-  "PNAS-Nexus-authoring-template.tex" 1780294915.88374 26779 bbc004ed4c9224e71f7152a9a849e46c ""
+  "PNAS-Nexus-authoring-template.aux" 1780378270.06052 7222 5ca917fcd74a6918dbb45ebeeb3076bb "pdflatex"
+  "PNAS-Nexus-authoring-template.bbl" 1780378268.42905 2513 07c8b6afb2a2880cd2be4174ee874766 "bibtex PNAS-Nexus-authoring-template"
+  "PNAS-Nexus-authoring-template.out" 1780378270.0615 3405 d2851a18177677134356fd4a279a04cd "pdflatex"
+  "PNAS-Nexus-authoring-template.tex" 1780378265.4462 29758 bc375bf86fac7b070e128be8cd9f2428 ""
   "images/before_after_process_vad.png" 1780243625.42181 57686 08df3240859429cdf5b621768cb382dc ""
   "images/training_loss.png" 1780294873.56349 273399 5a0c810b8076931127c244b8bc37ba25 ""
   "oup-authoring-template.cls" 1779978147.03202 145972 5195a4b3aae351606037cd91b0f6597b ""

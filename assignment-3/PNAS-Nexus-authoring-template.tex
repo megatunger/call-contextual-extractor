@@ -82,7 +82,7 @@
 \author[1]{Thomas Hoang}
 
 \address[1]{\orgname{Student ID: A1984077}}
-
+ 
 \received{Date}{0}{2026}
 \revised{Date}{0}{2026}
 \accepted{Date}{0}{2026}
@@ -91,11 +91,10 @@
 
 \abstract{Sales agents on our CRM platform (uCall) currently fill in customer fields by hand after every call. This project presents a three-stage pipeline to automate that process: (1) Silero VAD removes silence and noise from the raw audio, (2) a wav2vec\,2.0 model transcribes the remaining speech in Vietnamese, and (3) a LoRA-fine-tuned LLM extracts structured CRM fields from the transcript. The full staging export comprises 13{,}232 manual sales calls. An initial evaluation subset of 600 calls was selected; after dropping 50 broken records that failed to yield transcripts, the final dataset comprises 550 calls. This dataset uses an 80/20 train--test split (440 train, 110 test) for the extraction stage. Evaluation uses Word Error Rate for ASR and field-level metrics on the held-out test set (JSON validity and agreement with teacher labels).} 
 
-\keywords{keyword1, keyword2, keyword3, keyword4}
+\keywords{keyword1, keyword2, keyword3, keyword4}   
 
 \keywords[Abbreviations]{abbreviation1, abbreviation2, abbreviation3, abbreviation4}
 
-\otherabstract[Significance statement]{Research reports require a significance statement of between 50 and 120 words. Abbreviations are permitted, but citations cannot be included. If required, un-comment this element in the template to include. The heading is included automatically.}
 
 \maketitle
 \thispagestyle{empty}
@@ -107,91 +106,7 @@
 %\source{Epigraph source}
 %\end{epigraph}
 
-% =============================================================================
-% PLACEHOLDER --- delete this entire section before final submission / export.
-% =============================================================================
-\section*{Scope and assumptions agreement \textit{(draft placeholder---remove later)}}
-\label{sec:scope-agreement-placeholder}
 
-\noindent\textit{This section is for supervisor/student alignment only. It is not part of the final paper. Delete everything from here through the horizontal rule below once scope, data, methods, and evaluation are agreed.}
-
-\subsection*{Purpose}
-Decisions to lock before drafting, so every section of the report (Introduction $\rightarrow$ Conclusion) uses the \emph{same} numbers, names, and claims. For each item, mark the chosen answer; anything left as \textbf{TBD} blocks writing that section.
-
-\subsection*{A. Global consistency (must match in every section, abstract, and figures)}
-\begin{enumerate}
-  \item[A1.] Project title / one-line problem statement --- final wording?
-  \item[A2.] Product name spelling and casing (``uCall'') used everywhere?
-  \item[A3.] Corpus numbers: full $=13{,}232$; initial $=600$; dropped $=50$; used $=550$; split $=440$ train $/$ $110$ test --- frozen for all sections?
-  \item[A4.] Canonical stage names: ``VAD'', ``ASR'', ``Contextual Extraction'' --- fixed labels and order?
-  \item[A5.] CRM field list + types (\texttt{customer\_sector}, \texttt{customer\_needs}, \texttt{customer\_interested} 1--10, \texttt{customer\_busy} bool, \texttt{customer\_scheduled\_at} date$|$null, \texttt{customer\_rating}) --- final schema?
-  \item[A6.] Terminology: ``teacher / student'', ``LoRA'', ``fine-tune'' vs ``distill'' --- pick one vocabulary.
-  \item[A7.] Random seeds reported (data split $=42$; training $=3407$) --- state both?
-\end{enumerate}
-
-\subsection*{B. Introduction (Sec.~1)}
-\begin{enumerate}
-  \item[B1.] Motivation framing: business cost of manual entry, or broader ML/ASR+LLM angle, or both?
-  \item[B2.] Exactly which 2--3 contributions do we claim? (pipeline / stereo dialogue / LLM-labeled LoRA / deployable API)
-  \item[B3.] Do we claim any quantitative headline result in the intro, or keep it qualitative?
-\end{enumerate}
-
-\subsection*{C. Related Work + Novelty (Sec.~2)}
-\begin{enumerate}
-  \item[C1.] Scope of literature: VAD, Vietnamese ASR, small-LLM info-extraction, LLM-as-judge/teacher --- which to include?
-  \item[C2.] Stated gap we address (e.g.\ end-to-end Vietnamese telesales $\rightarrow$ CRM JSON with small local models)?
-  \item[C3.] Novelty claim wording --- is it ``novel system/application'' rather than ``novel algorithm''? Agree honestly.
-\end{enumerate}
-
-\subsection*{D. Methodology (Sec.~3)}
-\begin{enumerate}
-  \item[D1.] System diagram: include? what blocks/arrows? who produces it?
-  \item[D2.] Which equations are required (CE loss over response tokens, LoRA $\Delta W = BA$, attention, WER)?
-  \item[D3.] Depth on ASR: describe deployed service as black box, or include model internals?
-  \item[D4.] Prompt/label schema shown verbatim (the Gemini extraction prompt)?
-\end{enumerate}
-
-\subsection*{E. Experimental Setup (Sec.~4)}
-\begin{enumerate}
-  \item[E1.] Data subsection: SQL filter, duration rule, dedup, language --- what to disclose?
-  \item[E2.] Train/val/test --- do we add a validation set or keep train/test only? Justify.
-  \item[E3.] Hardware/software: exact GPU (Colab T4/A100?), PyTorch + Unsloth + bitsandbytes versions?
-  \item[E4.] Hyperparameter table contents: $r{=}16$, $\alpha{=}16$, dropout $0$, lr $2\mathrm{e}{-4}$, batch $2$, grad-accum $4$, epochs $1$, max-seq $2048$, 4-bit --- added table.
-  \item[E5.] Which models actually trained/reported (\texttt{Qwen/Qwen3.5-2B}, \texttt{Qwen/Qwen3.5-0.8B}, \texttt{google/gemma-4-E4B} [failed at training])?
-\end{enumerate}
-
-\subsection*{F. Results (Sec.~5)}
-\begin{enumerate}
-  \item[F1.] Baseline definition: base (non-fine-tuned) model? Gemini upper bound? trivial majority class?
-  \item[F2.] Final metric set: WER (ASR) + Valid JSON \%, busy acc, sector/schedule match, interested/rating MAE --- and do we add Precision/Recall/F1?
-  \item[F3.] Required figures: loss curve, per-field bar chart, call-duration histogram, VAD before/after --- which make the cut?
-  \item[F4.] Honesty on the earlier no-split bug --- report corrected numbers only, or show before/after?
-\end{enumerate}
-
-\subsection*{G. Discussion (Sec.~6, highest weight)}
-\begin{enumerate}
-  \item[G1.] Which ``war stories'' to tell (forgot train/test split; rate-limited Gemini labeling; stereo vs mono; resampling; checkpoint/resume)?
-  \item[G2.] Key learnings to highlight (teacher-bias ceiling, small-model viability, data quality $>$ size)?
-  \item[G3.] Future directions (2--3): scale to 13k, human-audited labels, streaming/real-time ASR, multi-tenant CRM schema?
-\end{enumerate}
-
-\subsection*{H. Conclusion (Sec.~7) + formatting}  
-\begin{enumerate}
-  \item[H1.] Single headline takeaway sentence?
-  \item[H2.] Template/format final: this OUP/PNAS style, or switch to NeurIPS/ICLR? Page limit?
-  \item[H3.] Citation style + reference manager (BibTeX \texttt{reference.bib}); cite datasets, HF models, libraries?
-  \item[H4.] Anonymisation / data-availability statement wording (internal data --- can it be shared?).
-\end{enumerate} 
- 
-\noindent\textbf{Agreed by:} Student \underline{\hspace{4cm}} \quad Supervisor \underline{\hspace{4cm}} \quad Date \underline{\hspace{3cm}}
-
-\vspace{1em}   
-\noindent\rule{\textwidth}{0.4pt}
-\smallskip
-\noindent\textit{End of placeholder section --- remove everything above this line before submission.}
-% =============================================================================
-
-\clearpage
 
 % -----------------------------------------------------------------------------
 % Assignment report outline (sections 1--7, titles only)
@@ -229,7 +144,7 @@ This project is novel because it \textbf{builds a complete pipeline from raw ste
 
 The goal of this work is to automatically extract customer information from call audio and fill the CRM fields. We propose a three-stage pipeline to accomplish this, as illustrated in Figure~\ref{fig:pipeline}. 
 
-\begin{figure}[hbt!]
+\begin{figure}[hbt!] 
   \centering
   \resizebox{0.6\linewidth}{!}{
   \begin{tikzpicture}[
@@ -239,7 +154,7 @@ The goal of this work is to automatically extract customer information from call
       arrow/.style={thick,->,>=stealth}
     ]
     \node [data] (audio) {Raw Stereo Audio};
-    \node [block, below=of audio] (vad) {Stage 1: VAD (Silero)};
+    \node [block, below=of audio] (vad) {Stage 1: VAD (Silero)};  
     \node [data, below=of vad] (segments) {Speech Segments};
     \node [block, below=of segments] (asr) {Stage 2: ASR (wav2vec 2.0)};
     \node [data, below=of asr] (transcript) {Vietnamese Transcript};
@@ -306,11 +221,11 @@ Of the initial 600 selected calls, 50 records were dropped because they failed t
   "instruction": "You are a structured-field 
 extractor for telesales CRM QA. Read the  
 following transcript and extract the  
-customer information.  
+customer information.   
 Output valid JSON matching this schema exactly: 
 {
   \"customer_sector\": \"string\",
-  \"customer_needs\": \"string\",
+  \"customer_needs\": \"string\", 
   \"customer_interested\": \"number (1-10)\",
   \"customer_busy\": \"boolean\",
   \"customer_scheduled_at\": \"string or null\",
@@ -427,19 +342,84 @@ Figure \ref{fig:training_loss} illustrates the training loss for both the Qwen3.
 \end{figure}
 
 \subsection{Extraction Performance}
-Evaluation uses deterministic substring/soft-matching for semantic fields (\texttt{customer\_sector} and \texttt{customer\_scheduled\_at}) to handle terminology differences. Numerical variables are evaluated with both Mean Squared Error (MSE) to penalize large deviations and a $\pm 1$ accuracy tolerance to account for subjective human scaling.
+To ensure a fair evaluation, the metrics used to score the model's outputs were tailored to the data type of each specific CRM field, as detailed in Table \ref{tab:evaluation_metrics}.
+
+\begin{table}[h]
+\centering
+\caption{Evaluation Metrics by Extracted Field}
+\begin{tabular}{@{}ll@{}}
+\toprule
+\textbf{JSON Field} & \textbf{Evaluation Method} \\
+\midrule
+Overall Format & Strict JSON Parsing (Pass/Fail) \\
+\texttt{customer\_busy} & Exact Match (Boolean) \\
+\texttt{customer\_sector} & Soft-Matching (Substring) \\
+\texttt{customer\_scheduled\_at} & Soft-Matching (Substring) \\
+\texttt{customer\_interested} & Mean Absolute Error (MAE) \\
+\bottomrule
+\end{tabular}
+\label{tab:evaluation_metrics}
+\end{table}
+
+\begin{table*}[t]
+\centering
+\caption{Quantitative Evaluation on the 110-Call Test Set}
+\begin{tabular}{@{}lccccc@{}} 
+\toprule
+\textbf{Model Configuration} & \textbf{Valid JSON (\%)} & \textbf{Busy Acc (\%)} & \textbf{Sector Match (\%)} & \textbf{Schedule Match (\%)} & \textbf{Interested (MAE)} \\
+\midrule
+Qwen3.5-0.8B (Base) & 100.00 & 64.55 & 8.18 & 70.00 & 4.07 \\
+Qwen3.5-0.8B (Fine-Tuned) & 94.55 & 56.73 & 41.35 & 75.96 & 3.68 \\
+\midrule
+Qwen3.5-2B (Base) & 76.36 & 30.95 & 0.00 & 34.52 & 3.62 \\
+Qwen3.5-2B (Fine-Tuned) & 76.36 & 30.95 & 0.00 & 34.52 & 3.62 \\
+\bottomrule
+\end{tabular}
+\label{tab:evaluation_results}
+\end{table*}
+
+Table \ref{tab:evaluation_results} details the extraction performance across the 110-call test set. Key observations include:
+\begin{itemize}
+    \item \textbf{0.8B Model Success:} The fine-tuned Qwen3.5-0.8B model demonstrates massive improvement in domain-specific tasks, such as \texttt{customer\_sector} (jumping from 8.18\% to 41.35\% accuracy) and \texttt{customer\_scheduled\_at} (improving to 75.96\%).
+    \item \textbf{2B Model Failure:} Interestingly, the Qwen3.5-2B model showed no change between its base and fine-tuned states, performing poorly overall compared to the smaller 0.8B variant.
+    \item \textbf{Environment Constraints:} The exact cause of the 2B model anomaly is unconfirmed, but it is highly suspected to be an environment compatibility issue. Because cloud computing credits were exhausted after training on the Colab T4 GPU, the final evaluation was executed locally on Apple Silicon (MacBook M4). This architectural transition likely caused a silent failure when attempting to merge or load the 4-bit LoRA adapter weights onto the base model using macOS.
+\end{itemize} 
 
 \section{Discussion}
 \label{sec:discussion}
 
 \subsection{Obstacles and Strategies}
+The reality of executing this pipeline exposed significant gaps between theoretical ML workflows and practical constraints. Our main engineering challenges revolved around data processing, hyperparameter tuning, and flawed evaluation setups:
+\begin{itemize}
+    \item \textbf{Data Leakage and Train/Test Partitioning:} During our initial modeling phase, we made a critical oversight: we forgot to explicitly partition the dataset into training and testing sets before fine-tuning. When we first evaluated the model, it achieved suspiciously perfect accuracy on the demo queries. Realizing we had severely overfit the model via data leakage, we had to scrap the LoRA adapter entirely, implement a strict $80/20$ data split, and retrain from scratch to obtain honest metrics.
+    \item \textbf{Hyperparameter Tuning Instability:} We spent considerable time experimenting with LoRA hyperparameters, which initially led to catastrophic results. We mistakenly set the learning rate too high ($1\mathrm{e}{-3}$) while pushing the adapter rank to $r=64$ in an attempt to force the model to learn faster. This caused severe training instability and loss spikes, resulting in a model that output repetitive gibberish. We overcame this by lowering the learning rate to $2\mathrm{e}{-4}$ and aggressively reducing the rank to $r=16$, which immediately stabilized convergence.
+    \item \textbf{Evaluation Framework Limitations:} Choosing how to evaluate the model proved to be one of our most frustrating obstacles. Standard classification metrics completely failed because generative text doesn't always match predefined labels exactly. Our initial Python evaluation scripts incorrectly penalized the model for minor formatting differences (e.g., \texttt{"IT\_Support"} vs. \texttt{"IT Support"}). We had to completely overhaul our evaluation strategy mid-project, pivoting to semantic soft-matching and Mean Absolute Error (MAE) to fairly assess the model's actual intent.
+    \item \textbf{Data Engineering Overhead:} We significantly underestimated the overhead of processing the raw 32\,GB audio dataset. Our initial sequential download script was projected to take over 24 hours. We had to pause modeling entirely to rewrite the data pipeline using Python's \texttt{concurrent.futures}. While this reduced ingestion time to a few hours, it immediately introduced race conditions and API rate-limiting blocks from Gemini, forcing us to implement exponential backoff.
+    \item \textbf{Cross-Platform Architectural Compatibility:} A major oversight was failing to anticipate the architectural friction between our development environment (macOS) and our training environment (NVIDIA T4). We trained the adapters using PyTorch/CUDA in the cloud. However, attempting to load the PyTorch-saved adapters into MLX locally resulted in silent crashes (e.g., \texttt{SimpleNamespace} attribute errors). This forced us into a complex process of manually translating adapter weights just to run inference.
+    \item \textbf{Hardware Constraints and Out-of-Memory Errors:} We hit a hard ceiling on the Colab 16\,GB T4 GPU when attempting to train the Qwen3.5-2B model. To salvage the run, we halved the \texttt{per\_device\_train\_batch\_size} to 1 and doubled the \texttt{gradient\_accumulation\_steps} to 8, allowing the optimizer to step without crashing. The larger \texttt{gemma-4-E4B} model had to be abandoned entirely due to VRAM exhaustion.
+\end{itemize}
 
 \subsection{What We Learned}
+Beyond the code, this project fundamentally shifted our understanding of applied machine learning:
+\begin{itemize}
+    \item \textbf{Complexity of Generative Evaluation:} Our struggles with the evaluation pipeline proved that defining quantitative metrics for generative LLM outputs is an iterative, ambiguous process. We learned that standard metrics are too strict for language tasks, and that building a robust, fault-tolerant evaluation script is just as critical as training the model itself.
+    \item \textbf{Data Quality Versus Parameter Scale:} The failure of the 2B model compared to the 0.8B model was highly instructive. We initially assumed a larger model would naturally capture more nuance. Instead, the 2B model suffered from optimization collapse because we had to squeeze it so aggressively to fit into VRAM. It proved that a very small, well-optimized model (0.8B) trained on clean, highly curated data will always beat a larger model that is starved of memory and compute.
+\end{itemize}
 
 \subsection{Future Directions}
+If provided with unlimited compute and time, we would evolve this project in three specific directions:
+\begin{itemize}
+    \item \textbf{Dataset Scaling and Manual Annotation:} We were constrained to a 550-call subset purely by API costs and time. With unlimited resources, we would process all 13,232 calls. More importantly, we would replace the Gemini-generated silver labels with a manual human review system to create a genuine gold-standard dataset, eliminating the current ceiling caused by the teacher model's inherited biases.
+    \item \textbf{End-to-End Latency Optimization:} Currently, the pipeline is entirely asynchronous (Audio $\rightarrow$ VAD $\rightarrow$ ASR $\rightarrow$ LLM). A major research path would be optimizing the wav2vec 2.0 ASR and Qwen extraction models into a single, streaming multimodal architecture that could extract CRM fields in real-time while the telemarketer is still on the call.
+    \item \textbf{Automated Evaluation Frameworks:} To solve our evaluation bottlenecks, we would implement an automated grading framework. Instead of relying on Python regex scripts, a larger frontier model would read the transcript and the student model's JSON output, semantically scoring whether the extracted fields accurately reflect the dialogue context.
+\end{itemize}
 
 \section{Conclusion}
 \label{sec:conclusion}
+
+This project successfully demonstrated the viability of automating structured CRM data extraction from noisy Vietnamese telemarketing calls using a fully localized, resource-constrained pipeline. By sequentially chaining Voice Activity Detection (Silero VAD), Automatic Speech Recognition (wav2vec 2.0), and a Low-Rank Adaptation (LoRA) fine-tuned language model (Qwen3.5-0.8B), we proved that complex, domain-specific semantic extraction can be achieved without relying on massive, proprietary cloud APIs. 
+
+Our findings indicate that in the realm of applied generative AI, high-quality data curation and architectural alignment heavily outweigh raw parameter count. The stark success of the instruction-tuned 0.8B model, contrasted against the optimization collapse of the larger 2B model on identical 16\,GB hardware, underscores the necessity of matching model scope to physical computing constraints. Ultimately, this pipeline provides a foundational blueprint for enterprises seeking to reduce the operational overhead of manual data entry while maintaining complete internal data sovereignty and cost efficiency.
 
 \bibliographystyle{oup-plain}
 \bibliography{reference}

@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.29 (TeX Live 2026) (preloaded format=pdflatex 2026.3.11)  1 JUN 2026 15:51
+This is pdfTeX, Version 3.141592653-2.6-1.40.29 (TeX Live 2026) (preloaded format=pdflatex 2026.3.11)  2 JUN 2026 15:01
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -1108,50 +1108,28 @@ Package hyperref Info: Link coloring OFF on input line 65.
 \@outlinefile=\write4
 \openout4 = `PNAS-Nexus-authoring-template.out'.
 
-LaTeX Font Info:    Calculating math sizes for size <11.04124> on input line 101.
-LaTeX Font Info:    Trying to load font information for U+msa on input line 101.
+LaTeX Font Info:    Calculating math sizes for size <11.04124> on input line 100.
+LaTeX Font Info:    Trying to load font information for U+msa on input line 100.
  (/usr/local/texlive/2026/texmf-dist/tex/latex/amsfonts/umsa.fd
 File: umsa.fd 2013/01/14 v3.01 AMS symbols A
 )
-LaTeX Font Info:    Trying to load font information for U+msb on input line 101.
+LaTeX Font Info:    Trying to load font information for U+msb on input line 100.
  (/usr/local/texlive/2026/texmf-dist/tex/latex/amsfonts/umsb.fd
 File: umsb.fd 2013/01/14 v3.01 AMS symbols B
 )
-LaTeX Font Info:    Trying to load font information for U+rsfs on input line 101.
+LaTeX Font Info:    Trying to load font information for U+rsfs on input line 100.
  (/usr/local/texlive/2026/texmf-dist/tex/latex/jknapltx/ursfs.fd
 File: ursfs.fd 1998/03/24 rsfs font definition file (jk)
 )
-LaTeX Font Info:    Calculating math sizes for size <8.03> on input line 101.
-LaTeX Font Info:    Calculating math sizes for size <9.03374> on input line 119.
+LaTeX Font Info:    Calculating math sizes for size <8.03> on input line 100.
+LaTeX Font Info:    Calculating math sizes for size <9.03374> on input line 130.
 
-Underfull \hbox (badness 7740) in paragraph at lines 124--125
-[]\T5/cmss/m/n/9.03374 Product name spelling and casing (``uCall'') used
- []
+Underfull \vbox (badness 10000) has occurred while \output is active []
 
 
-Underfull \hbox (badness 3758) in paragraph at lines 126--127
-[]\T5/cmss/m/n/9.03374 Canonical stage names: ``VAD'', ``ASR'', ``Contextual
- []
+Underfull \vbox (badness 10000) has occurred while \output is active []
 
-LaTeX Font Info:    Trying to load font information for T5+cmtt on input line 127.
-(/usr/local/texlive/2026/texmf-dist/tex/latex/vntex/t5cmtt.fd
-File: t5cmtt.fd 1999/05/25 v2.5h Standard LaTeX font definitions
-)
-Overfull \hbox (6.96828pt too wide) in paragraph at lines 127--128
-[]\T5/cmss/m/n/9.03374 CRM field list + types (\T5/cmtt/m/n/9.03374 customer_sector\T5/cmss/m/n/9.03374 , \T5/cmtt/m/n/9.03374 customer_needs\T5/cmss/m/n/9.03374 ,
- []
-
-
-Overfull \hbox (73.83264pt too wide) in paragraph at lines 127--128
-\T5/cmtt/m/n/9.03374 customer_interested \T5/cmss/m/n/9.03374 1--10, \T5/cmtt/m/n/9.03374 customer_busy \T5/cmss/m/n/9.03374 bool, \T5/cmtt/m/n/9.03374 customer_scheduled_at
- []
-
-
-Underfull \hbox (badness 2478) in paragraph at lines 142--143
-[]\T5/cmss/m/n/9.03374 Stated gap we address (e.g. end-to-end Vietnamese
- []
-
-[1
+ [1
 Non-PDF special ignored!
 <special> ps: [{ThisPage} << /CropBox [0 0 595.82918 782.7922] >> /PUT pdfm...
 
@@ -1159,48 +1137,37 @@ Non-PDF special ignored!
 
 
 ]
-Underfull \hbox (badness 1681) in paragraph at lines 148--149
-[]\T5/cmss/m/n/9.03374 System diagram: include? what blocks/arrows? who
+<images/before_after_process_vad.png, id=129, 1019.7297pt x 239.2137pt>
+File: images/before_after_process_vad.png Graphic file (type png)
+<use images/before_after_process_vad.png>
+Package pdftex.def Info: images/before_after_process_vad.png  used on input line 183.
+(pdftex.def)             Requested size: 244.6937pt x 57.4015pt.
+LaTeX Font Info:    Trying to load font information for T5+cmtt on input line 191.
+ (/usr/local/texlive/2026/texmf-dist/tex/latex/vntex/t5cmtt.fd
+File: t5cmtt.fd 1999/05/25 v2.5h Standard LaTeX font definitions
+)
+Underfull \hbox (badness 2521) in paragraph at lines 191--192
+\T5/cmss/m/n/9.03374 ([]; []). Ultimately, we chose the wav2vec 2.0 model
  []
 
 
-Underfull \hbox (badness 6188) in paragraph at lines 151--152
-[]\T5/cmss/m/n/9.03374 Prompt/label schema shown verbatim (the Gemini
+Overfull \hbox (4.44511pt too wide) in paragraph at lines 208--208
+[]|\T5/cmtt/m/n/9.03374 customer_interested| 
  []
 
 
-Underfull \hbox (badness 6842) in paragraph at lines 158--159
-[]\T5/cmss/m/n/9.03374 Hardware/software: exact GPU (Colab T4/A100?),
+Overfull \hbox (13.9282pt too wide) in paragraph at lines 210--210
+[]|\T5/cmtt/m/n/9.03374 customer_scheduled_at| 
  []
 
 
-Overfull \hbox (3.9341pt too wide) in paragraph at lines 160--161
-[]\T5/cmss/m/n/9.03374 Which models actually trained/reported (\T5/cmtt/m/n/9.03374 Qwen/Qwen3.5-2B\T5/cmss/m/n/9.03374 ,
+Overfull \hbox (0.51297pt too wide) in paragraph at lines 211--211
+[]|\T5/cmss/m/n/9.03374 Number$\OMS/cmsy/m/n/9.03374 j$\T5/cmss/m/n/9.03374 Null| 
  []
 
 
-Underfull \hbox (badness 5802) in paragraph at lines 160--161
-\T5/cmtt/m/n/9.03374 Qwen/Qwen3.5-0.8B\T5/cmss/m/n/9.03374 , \T5/cmtt/m/n/9.03374 google/gemma-4-E4B \T5/cmss/m/n/9.03374 [failed at
- []
-
-
-Underfull \hbox (badness 1097) in paragraph at lines 173--174
-\T5/cmss/m/n/9.03374 limited Gemini labeling; stereo vs mono; resampling;
- []
-
-
-Overfull \hbox (9.05656pt too wide) in paragraph at lines 182--183
-[]\T5/cmss/m/n/9.03374 Citation style + reference manager (BibTeX \T5/cmtt/m/n/9.03374 reference.bib\T5/cmss/m/n/9.03374 );
- []
-
-
-Underfull \hbox (badness 5091) in paragraph at lines 183--184
-[]\T5/cmss/m/n/9.03374 Anonymisation / data-availability statement wording
- []
-
-
-Overfull \hbox (261.76535pt too wide) in paragraph at lines 189--193
-[]
+Overfull \hbox (15.61836pt too wide) in paragraph at lines 202--214
+ [][] 
  []
 
 
@@ -1214,15 +1181,30 @@ Overfull \vbox (3.0pt too high) has occurred while \output is active []
  [2
 Non-PDF special ignored!
 <special> ps: [{ThisPage} << /CropBox [0 0 595.82918 782.7922] >> /PUT pdfm...
-]
-<images/before_after_process_vad.png, id=141, 1019.7297pt x 239.2137pt>
-File: images/before_after_process_vad.png Graphic file (type png)
-<use images/before_after_process_vad.png>
-Package pdftex.def Info: images/before_after_process_vad.png  used on input line 268.
-(pdftex.def)             Requested size: 244.6937pt x 57.4015pt.
+ <./images/before_after_process_vad.png>]
+Underfull \hbox (badness 3260) in paragraph at lines 245--246
+[]\T5/cmtt/m/n/9.03374 google/gemma-4-E4B\T5/cmss/m/n/9.03374 : Excluded from final evaluation
+ []
 
-Underfull \hbox (badness 2521) in paragraph at lines 276--277
-\T5/cmss/m/n/9.03374 ([]; []). Ultimately, we chose the wav2vec 2.0 model
+
+Underfull \hbox (badness 1540) in paragraph at lines 251--253
+\T5/cmss/m/n/9.03374 implicit context. Smaller models are preferred to reduce
+ []
+
+
+Underfull \hbox (badness 4266) in paragraph at lines 254--255
+[]\T5/cmss/m/n/9.03374 Because updating every parameter of the model is
+ []
+
+LaTeX Font Info:    Calculating math sizes for size <7.52812> on input line 281.
+
+Underfull \hbox (badness 2050) in paragraph at lines 294--295
+\T5/cmss/m/n/9.03374 isolation, Voice Activity Detection using Silero VAD
+ []
+
+
+Underfull \hbox (badness 1270) in paragraph at lines 326--327
+\T5/cmss/m/n/9.03374 dataset (440 training records), limiting training to a
  []
 
 
@@ -1236,46 +1218,45 @@ Overfull \vbox (3.0pt too high) has occurred while \output is active []
  [3
 Non-PDF special ignored!
 <special> ps: [{ThisPage} << /CropBox [0 0 595.82918 782.7922] >> /PUT pdfm...
+]
+<images/training_loss.png, id=172, 578.16pt x 361.35pt>
+File: images/training_loss.png Graphic file (type png)
+<use images/training_loss.png>
+Package pdftex.def Info: images/training_loss.png  used on input line 339.
+(pdftex.def)             Requested size: 195.75569pt x 122.34459pt.
 
- <./images/before_after_process_vad.png>]
-Overfull \hbox (4.44511pt too wide) in paragraph at lines 293--293
-[]|\T5/cmtt/m/n/9.03374 customer_interested| 
- []
-
-
-Overfull \hbox (13.9282pt too wide) in paragraph at lines 295--295
-[]|\T5/cmtt/m/n/9.03374 customer_scheduled_at| 
- []
-
-
-Overfull \hbox (0.51297pt too wide) in paragraph at lines 296--296
-[]|\T5/cmss/m/n/9.03374 Number$\OMS/cmsy/m/n/9.03374 j$\T5/cmss/m/n/9.03374 Null| 
- []
-
-
-Overfull \hbox (15.61836pt too wide) in paragraph at lines 287--299
+Overfull \hbox (13.89911pt too wide) in paragraph at lines 367--379
  [][] 
  []
 
 
-Underfull \hbox (badness 3260) in paragraph at lines 330--331
-[]\T5/cmtt/m/n/9.03374 google/gemma-4-E4B\T5/cmss/m/n/9.03374 : Excluded from final evaluation
+Underfull \hbox (badness 2050) in paragraph at lines 383--384
+[]\T5/cmss/bx/n/9.03374 0.8B Model Success: \T5/cmss/m/n/9.03374 The fine-tuned Qwen3.5-0.8B
  []
 
 
-Underfull \hbox (badness 1540) in paragraph at lines 336--338
-\T5/cmss/m/n/9.03374 implicit context. Smaller models are preferred to reduce
+Underfull \hbox (badness 1867) in paragraph at lines 383--384
+\T5/cmss/m/n/9.03374 model demonstrates massive improvement in domain-
  []
 
 
-Underfull \hbox (badness 4266) in paragraph at lines 339--340
-[]\T5/cmss/m/n/9.03374 Because updating every parameter of the model is
+Overfull \hbox (0.66899pt too wide) in paragraph at lines 395--396
+[]\T5/cmss/bx/n/9.03374 Hyperparameter Tuning Instability: \T5/cmss/m/n/9.03374 We spent considerable
  []
 
-LaTeX Font Info:    Calculating math sizes for size <7.52812> on input line 366.
 
-Underfull \hbox (badness 2050) in paragraph at lines 379--380
-\T5/cmss/m/n/9.03374 isolation, Voice Activity Detection using Silero VAD
+Underfull \hbox (badness 3108) in paragraph at lines 396--397
+\T5/cmss/m/n/9.03374 labels exactly. Our initial Python evaluation scripts
+ []
+
+
+Underfull \hbox (badness 2126) in paragraph at lines 396--397
+\T5/cmss/m/n/9.03374 incorrectly penalized the model for minor formatting
+ []
+
+
+Overfull \hbox (10.04007pt too wide) in paragraph at lines 397--398
+[]\T5/cmss/bx/n/9.03374 Data Engineering Overhead: \T5/cmss/m/n/9.03374 We significantly underestimated
  []
 
 
@@ -1289,24 +1270,49 @@ Overfull \vbox (3.0pt too high) has occurred while \output is active []
  [4
 Non-PDF special ignored!
 <special> ps: [{ThisPage} << /CropBox [0 0 595.82918 782.7922] >> /PUT pdfm...
-]
-Underfull \hbox (badness 1270) in paragraph at lines 411--412
-\T5/cmss/m/n/9.03374 dataset (440 training records), limiting training to a
- []
-
-<images/training_loss.png, id=182, 578.16pt x 361.35pt>
-File: images/training_loss.png Graphic file (type png)
-<use images/training_loss.png>
-Package pdftex.def Info: images/training_loss.png  used on input line 424.
-(pdftex.def)             Requested size: 195.75569pt x 122.34459pt.
-
-Underfull \hbox (badness 5077) in paragraph at lines 430--431
-\T5/cmss/m/n/9.03374 Evaluation uses deterministic substring/soft-matching for
+ <./images/training_loss.png>]
+Underfull \hbox (badness 1484) in paragraph at lines 403--405
+\T5/cmss/m/n/9.03374 Beyond the code, this project fundamentally shifted our
  []
 
 
-Overfull \hbox (9.27318pt too wide) in paragraph at lines 430--431
-\T5/cmss/m/n/9.03374 semantic fields (\T5/cmtt/m/n/9.03374 customer_sector \T5/cmss/m/n/9.03374 and \T5/cmtt/m/n/9.03374 customer_scheduled_at\T5/cmss/m/n/9.03374 )
+Underfull \hbox (badness 2818) in paragraph at lines 405--406
+\T5/cmss/m/n/9.03374 metrics for generative LLM outputs is an iterative,
+ []
+
+
+Underfull \hbox (badness 1033) in paragraph at lines 412--413
+[]\T5/cmss/bx/n/9.03374 Dataset Scaling and Manual Annotation: \T5/cmss/m/n/9.03374 We were
+ []
+
+
+Underfull \hbox (badness 4096) in paragraph at lines 414--415
+[]\T5/cmss/bx/n/9.03374 Automated Evaluation Frameworks: \T5/cmss/m/n/9.03374 To solve our
+ []
+
+
+Underfull \hbox (badness 6094) in paragraph at lines 420--421
+\T5/cmss/m/n/9.03374 This project successfully demonstrated the viability of
+ []
+
+
+Underfull \hbox (badness 3260) in paragraph at lines 420--421
+\T5/cmss/m/n/9.03374 automating structured CRM data extraction from noisy
+ []
+
+
+Underfull \hbox (badness 5077) in paragraph at lines 420--421
+\T5/cmss/m/n/9.03374 Detection (Silero VAD), Automatic Speech Recognition
+ []
+
+
+Underfull \hbox (badness 1092) in paragraph at lines 422--423
+\T5/cmss/m/n/9.03374 AI, high-quality data curation and architectural alignment
+ []
+
+
+Underfull \hbox (badness 1248) in paragraph at lines 422--423
+\T5/cmss/m/n/9.03374 scope to physical computing constraints. Ultimately, this
  []
 
 (./PNAS-Nexus-authoring-template.bbl
@@ -1330,7 +1336,7 @@ Overfull \vbox (3.0pt too high) has occurred while \output is active []
  [5
 Non-PDF special ignored!
 <special> ps: [{ThisPage} << /CropBox [0 0 595.82918 782.7922] >> /PUT pdfm...
- <./images/training_loss.png>]
+]
 Underfull \hbox (badness 1715) in paragraph at lines 25--29
 []\T5/cmss/m/n/9.03374 Qualcomm.  Zipformer.  []$\T5/cmtt/m/n/9.03374 https : / / huggingface . co /
  []
@@ -1363,21 +1369,21 @@ LaTeX2e <2025-11-01>
 L3 programming layer <2026-01-19>
  ***********
 Package rerunfilecheck Info: File `PNAS-Nexus-authoring-template.out' has not changed.
-(rerunfilecheck)             Checksum: CA98AF48E16043F12A1963AAEB5E6E00;3406.
+(rerunfilecheck)             Checksum: D2851A18177677134356FD4A279A04CD;3405.
  ) 
 Here is how much of TeX's memory you used:
- 28356 strings out of 467525
- 530028 string characters out of 5418982
- 944155 words of memory out of 5000000
+ 28348 strings out of 467525
+ 529941 string characters out of 5418982
+ 942200 words of memory out of 5000000
  56692 multiletter control sequences out of 15000+600000
  670510 words of font info for 155 fonts, out of 8000000 for 9000
  1145 hyphenation exceptions out of 8191
  99i,11n,108p,17453b,851s stack positions out of 10000i,1000n,20000p,200000b,200000s
 </usr/local/texlive/2026/texmf-dist/fonts/type1/public/amsfonts/cmextra/cmex9.pfb></usr/local/texlive/2026/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi6.pfb></usr/local/texlive/2026/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi7.pfb></usr/local/texlive/2026/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi9.pfb></usr/local/texlive/2026/texmf-dist/fonts/type1/public/amsfonts/cm/cmr6.pfb></usr/local/texlive/2026/texmf-dist/fonts/type1/public/amsfonts/cm/cmr7.pfb></usr/local/texlive/2026/texmf-dist/fonts/type1/public/amsfonts/cm/cmr9.pfb></usr/local/texlive/2026/texmf-dist/fonts/type1/public/amsfonts/cm/cmss9.pfb></usr/local/texlive/2026/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy6.pfb></usr/local/texlive/2026/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy7.pfb></usr/local/texlive/2026/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy9.pfb></usr/local/texlive/2026/texmf-dist/fonts/type1/vntex/vnr/vnr9.pfb></usr/local/texlive/2026/texmf-dist/fonts/type1/vntex/vnr/vnss8.pfb></usr/local/texlive/2026/texmf-dist/fonts/type1/vntex/vnr/vnss9.pfb></usr/local/texlive/2026/texmf-dist/fonts/type1/vntex/vnr/vnssbx10.pfb></usr/local/texlive/2026/texmf-dist/fonts/type1/vntex/vnr/vnssi8.pfb></usr/local/texlive/2026/texmf-dist/fonts/type1/vntex/vnr/vnssi9.pfb></usr/local/texlive/2026/texmf-dist/fonts/type1/vntex/vnr/vntt9.pfb>
-Output written on PNAS-Nexus-authoring-template.pdf (6 pages, 513502 bytes).
+Output written on PNAS-Nexus-authoring-template.pdf (6 pages, 513005 bytes).
 PDF statistics:
- 298 PDF objects out of 1000 (max. 8388607)
- 247 compressed objects within 3 object streams
- 60 named destinations out of 1000 (max. 500000)
+ 291 PDF objects out of 1000 (max. 8388607)
+ 240 compressed objects within 3 object streams
+ 52 named destinations out of 1000 (max. 500000)
  207 words of extra memory for PDF output out of 10000 (max. 10000000)
 
